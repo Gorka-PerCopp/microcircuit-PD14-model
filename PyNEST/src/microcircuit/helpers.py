@@ -35,6 +35,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
 import json
+import nest
 
 if "DISPLAY" not in os.environ:
     import matplotlib
@@ -725,7 +726,7 @@ def time_averaged_single_neuron_firing_rates(spikes, pop, interval):
     D=(interval[1]-interval[0])
     for n in pop:        
         rates += [ len(np.where(spikes['senders'] == n)[0]) * 1./D * 1e3]
-    return np.array(rates)
+    return rates
 
 #################################################
 def single_neuron_isi_cvs(spikes, pop, interval):    
@@ -917,16 +918,19 @@ def data_distribution(data, label, unit='', hist_bin=None):
     print('\tmax         = %.3f %s' % (stat['max']         , unit ))
 
     ## histogram
-    if hist_bin == None:
+    if hist_bin is None:
         print()
         print('\tUsing Freedman-Diaconis estimator for histogram binsize.')
         print()
         bins = 'fd'  ## Freedman Diaconis estimator
     else:
-        if hist_bin>0:
-            bins = np.arange(stat['min'] - hist_bin, stat['max'] + 1.1 * hist_bin, hist_bin)
-        else:
-            bins = np.array([0,stat['min'],2*stat['min']])
+        if isinstance(hist_bin, (int, float)):
+            if hist_bin>0:
+                bins = np.arange(stat['min'] - hist_bin, stat['max'] + 1.1 * hist_bin, hist_bin)
+            else:
+                bins = np.array([0,stat['min'],2*stat['min']])
+        elif isinstance(hist_bin, (list, np.ndarray)):
+            bins = hist_bin
             
     data_hist, bins = np.histogram(data,bins=bins)    
     
