@@ -23,11 +23,11 @@ Specifically, the model demonstrates that the observed cell-type and layer speci
 
 In recent years, the model became an established Computational Neuroscience benchmark for various soft- and hardware architectures ([van Albada et al., 2018][2]; [Jordan et al., 2018][3]; [Rhodes et al., 2020][4]; [Dasbach et al., 2021][5]; [Albers et al., 2022][6]; [Kurth et al., 2022][7]; [Heittmann et al., 2022][8]; [Pronold et al., 2022][9]; [Pronold et al., 2022][10]; [Golosio et al., 2023][11]; [Kauth et al., 2023][12]; [Schmidt et al., 2024][13]). 
 
-A list of studies citing and/or using the microcircuit model is provided [here](publications.bib) (studies *using* the model are tagged by `uses_PD14 = {yes}`). Feel free to contact us in case publications are missing in this list.
+A list of studies citing and/or using the microcircuit model is provided [here](docs/publications/publications.bib) (studies *using* the model are tagged by `uses_PD14 = {yes}`). Feel free to contact us in case publications are missing in this list.
 
 ## Model description
 
-A detailed mathematical, implementation agnostic description of the model and its parameters is provided [here](docs/ModelDescription_microcircuit-PD14-model.pdf).
+A detailed mathematical, implementation agnostic description of the model and its parameters is provided [here](docs/model_description/ModelDescription_microcircuit-PD14-model.pdf).
 
 ## Model implementations
 * [PyNEST](PyNEST/README.md)
@@ -36,13 +36,15 @@ A detailed mathematical, implementation agnostic description of the model and it
 
 |  |  | 
 |--|--|
-| [`docs`](docs) | model description (implementation agnostic)|
+| [`docs`](docs) | documentation|
+| &emsp;[`docs/model_description`](docs/model_description) | model description (implementation agnostic) |
+| &emsp;[`docs/benchmarking`](docs/benchmarking) | performance benchmarking |
+| &emsp;[`docs/publications`](docs/publications) | publications citing/using the microcircuit model|
 | [`PyNEST`](PyNEST) | PyNEST implementation (python package)|
 | &emsp;[`PyNEST/src/microcircuit`](PyNEST/src/microcircuit) | source code |
 | &emsp;[`PyNEST/examples`](PyNEST/examples) | examples illustrating usage of the python package |
 | &emsp;[`PyNEST/reference_data`](PyNEST/reference_data) | reference spike data |
 | &emsp;[`PyNEST/tests`](PyNEST/tests) | unit tests |
-| [`publications.bib`](publications.bib) | publications citing/using the microcircuit model |
 | [`figures`](figures) | overview figures |
 
 ## References
