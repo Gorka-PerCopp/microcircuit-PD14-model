@@ -132,7 +132,7 @@ pdfkeywords={}
   \hline 
    $x \in \{\mathcal{E}_{23},\mathcal{E}_{4},\mathcal{E}_{5},\mathcal{E}_{6},\mathcal{I}_{23},\mathcal{I}_{4},\mathcal{I}_{5},\mathcal{I}_{6}\}$ & LIF & $N_{x}$\\
   \hline 
-  $\mathcal{P} = \bigcup_{x} x$ & LIF & $N= \sum_{x} N_{x}$\\
+  $\mathcal{P} = \bigcup_{x} x$ & LIF & $N= \sum_{x} N_{x}$ (see remark \ref{remark:downscaling})\\
   \hline 
    $\mathcal{T}$ & realizations of Poisson point process & $N_{\mathcal{T}}$ \\
    \hline
@@ -166,7 +166,7 @@ pdfkeywords={}
   \hline
    $x \in \{\mathcal{E}_{23},\ldots,\mathcal{I}_{6}\}$ & $y \in \{\mathcal{E}_{23},\ldots,\mathcal{I}_{6}\}$ &
                             \begin{itemize}[align=left,leftmargin=*]
-				    \item random, fixed total number $K_{yx}$ of connections\cref{def:random_fixed_total_number} 
+				    \item random, fixed total number $K_{yx}$ of connections\cref{def:random_fixed_total_number} (see remark \ref{remark:downscaling})
                             \item synaptic weights $J_{ij}$ ($\forall{}i\in y, j\in x$)
                             \item spike-transmission delays $d_{ij}$ ($\forall{}i\in y, j\in x$)
                             \end{itemize}\\
@@ -822,6 +822,27 @@ $\bar{d}_{x}$ &  & mean spike transmission delays:\\
 
 \begin{enumerate}
   %%% 
+\item \label{remark:downscaling} The implementation contains, besides the original full-scale model of \citet{Potjans14}, a downscaled version, which can run on a desktop computer. This is controlled by the parameters \texttt{N\_scaling} and \texttt{K\_scaling} in the network parameters file. The first parameter scales the number of neurons, whereas the second parameter scales the number of synapses per neuron or in-degree. The scaling happens on both, inter-population and external connectivity.
+\par
+Downscaling the in-degree $K$ changes the mean and variance of the synaptic input currents. In order to avoid this, one can choose the new synaptic weights $J^{*}$ in such a way that together with a compensation current these effects are compensated. For the full-scale model we have
+\begin{equation*}
+  \begin{aligned}
+    \mu &= \tauS K J r \, ,\\
+    \sigma^2 &= \tauS K J^2 r \, ,
+  \end{aligned}
+\end{equation*}
+where $K$ is the in-degree, $J$ the synaptic weight and $r$ the firing rate. For the downscaled model we have
+\begin{equation*}
+  \begin{aligned}
+    \mu^{*} &= \tauS K^{*} J^{*} r + \mu_{0}\, ,\\
+    \sigma^{2*} &= \tauS K^{*} (J^{*})^2 r\, .
+  \end{aligned}
+\end{equation*}
+Here, $K^{*}=f K$ with some factor $0<f<1$, and $\mu_{0}$ is a compensation current. Comparing the equations of the variance we find $J^{*}=J/\sqrt{f}$. Inserting this in the equation of the mean and solving for the compensation current $\mu_{0}$ we find
+\begin{equation*}
+  \mu_{0} = \tauS \left(1 - \sqrt{f}\right) K J r\, .
+\end{equation*}
+There are other ways to downscale the model, for more details see \citep{vanAlbada15}.
 \item \label{remark:DC_stim} In the original model of \citet{Potjans14}, the cortico-cortical inputs are modeled as independent realizations $s_{i}(t)$ ($i\in\mathcal{C}_x$ for $x\in \{\mathcal{E}_{23},\ldots,\mathcal{I}_{6}\}$) of a Poisson point process with constant rate $\nu_{\mathcal{C}_{x}} = K_{\mathcal{C}_{x}}\nu_{\mathcal{C}}$, filtered by an exponential kernel $\text{PSC}(t)$ with time constant $\tauS$ and amplitude $\bar{I}$. 
 Here, $K_{\mathcal{C}_{x}}$ denotes the cortico-cortical in-degree and $\nu_{\mathcal{C}}$ a constant rate.
 DC inputs are computationally less expensive, exactly reproducible, and lead to similar network activity statistics.
@@ -861,6 +882,12 @@ In \citep{Senk25_arxiv}, the population specific initial conditions are refered 
   Senk, J., Kurth, A., Furber, S., Gemmeke, T., Golosio, B., Heittmann, A., Knight, J. C., M\"uller, E., Noll, T., Nowotny, T., Peraza Coppola, G., Peres, L., Rhodes, O., Rowley, A., Schemmel, J., Stadtmann, T., Tetzlaff, T., Tiddia, G., van Albada, S. J., Villamar, J., \& Diesmann, M. (2025). 
   \newblock Constructive community race: full-density spiking neural network model drives neuromorphic computing.
   \newblock arXiv:2505.21185.
+
+\bibitem[van Albada et al., 2015]{vanAlbada15}
+van Albada, S. J., Helias, M., Diesmann, M. (2015).
+\newblock Scalability of Asynchronous Networks Is Limited by One-To-One Mapping between Effective Connectivity and Correlations.
+\newblock {\em PLoS Computational Biology}, 11(9):e1004490.
+\newblock \url{https://doi.org/10.1371/journal.pcbi.1004490}
 
 \end{thebibliography}
 
