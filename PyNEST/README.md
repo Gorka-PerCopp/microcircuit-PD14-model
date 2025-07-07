@@ -43,7 +43,7 @@ After installation, the `microcircuit` python package can be imported in a pytho
 import microcircuit
 ```
 
-See [this example](examples/run_microcircuit.py) for a more detailed illustration of how the package can be used.
+See [this example](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST/examples/run_microcircuit.py) for a more detailed illustration of how the package can be used.
   
 ## Software requirements
 
@@ -94,4 +94,4 @@ License
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
-This project is licensed under GNU General Public License v2.0 or later.  For details, see [here](../LICENSES/GPL-2.0-or-later.txt).
+This project is licensed under GNU General Public License v2.0 or later.  For details, see [here](https://github.com/INM-6/microcircuit-PD14-model/blob/main/LICENSES/GPL-2.0-or-later.txt).
