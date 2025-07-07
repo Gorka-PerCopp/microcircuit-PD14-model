@@ -53,14 +53,14 @@ default_stim_dict = {
     "delay_th_mean": 1.5,
     # relative standard deviation of the thalamic delay (in ms)
     "delay_th_rel_std": 0.5,
-    # optional DC input
-    # turn DC input on or off (True or False)
-    "dc_input": False,
+    # optional transient DC input
+    # turn transient DC input pulse on or off (True or False)
+    "dc_transient": False,
     # start of the DC input (in ms)
-    "dc_start": 650.0,
+    "dc_transient_start": 650.0,
     # duration of the DC input (in ms)
-    "dc_dur": 100.0,
+    "dc_transient_dur": 100.0,
     # amplitude of the DC input (in pA); final amplitude is population-specific
     # and will be obtained by multiplication with 'K_ext'
-    "dc_amp": 0.3,
+    "dc_transient_amp": 0.3,
 }

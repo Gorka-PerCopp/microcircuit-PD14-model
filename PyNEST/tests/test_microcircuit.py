@@ -41,7 +41,7 @@ from microcircuit.stimulus_params import default_stim_dict as stim_dict
 #####################
 
 # set scaling factor of simulation
-scaling_factor = 0.1
+scaling_factor = 0.2
 sim_dict['N_scaling'] = scaling_factor
 sim_dict['K_scaling'] = scaling_factor
 

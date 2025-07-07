@@ -151,7 +151,8 @@ def adjust_weights_and_input_to_synapse_scaling(
     tau_syn,
     full_mean_rates,
     DC_amp,
-    poisson_input,
+    #poisson_input,
+    bg_input_type,
     bg_rate,
     K_ext,
 ):
@@ -179,8 +180,10 @@ def adjust_weights_and_input_to_synapse_scaling(
         Firing rates of the full network (in spikes/s).
     DC_amp
         DC input current (in pA).
-    poisson_input
-        True if Poisson input is used.
+    #poisson_input
+        #True if Poisson input is used.
+    bg_input_type
+        Type of background input, either "poisson" or "dc".
     bg_rate
         Firing rate of Poisson generators (in spikes/s).
     K_ext
@@ -201,13 +204,14 @@ def adjust_weights_and_input_to_synapse_scaling(
 
     # recurrent input of full network
     indegree_matrix = full_num_synapses / full_num_neurons[:, np.newaxis]
-    input_rec = np.sum(mean_PSC_matrix * indegree_matrix * full_mean_rates, axis=1)
+    input_rec = np.sum(mean_PSC_matrix * indegree_matrix * full_mean_rates, axis=1) # local input currents in full scale network
 
-    DC_amp_new = DC_amp + 0.001 * tau_syn * (1.0 - np.sqrt(K_scaling)) * input_rec
+    DC_amp_new = DC_amp + 0.001 * tau_syn * (1.0 - np.sqrt(K_scaling)) * input_rec 
 
-    if poisson_input:
+    if bg_input_type == "poisson":
         input_ext = PSC_ext * K_ext * bg_rate
         DC_amp_new += 0.001 * tau_syn * (1.0 - np.sqrt(K_scaling)) * input_ext
+
     return PSC_matrix_new, PSC_ext_new, DC_amp_new
 
 
@@ -377,7 +381,7 @@ def boxplot(path, populations):
     plt.clf()
     
     bp = plt.boxplot(
-        rates_per_neuron_rev, 0, "rs", 0, medianprops=medianprops, meanprops=meanprops, meanline=True, showmeans=True
+        rates_per_neuron_rev, 0, "rs", 0, medianprops=medianprops, meanprops=meanprops, meanline=True, showmeans=True, orientation='horizontal'
     )
     plt.setp(bp["boxes"], color="black")
     plt.setp(bp["whiskers"], color="black")
@@ -396,11 +400,11 @@ def boxplot(path, populations):
         boxPolygon = Polygon(boxCoords, facecolor=color_list[k])
         plt.gca().add_patch(boxPolygon)
         
-    plt.xlabel(r'neuron population')
-    plt.ylabel("firing rate (spikes/s)")
-    plt.xticks(label_pos, pop_names)
+    plt.ylabel(r'neuron population')
+    plt.xlabel("firing rate (spikes/s)")
+    plt.yticks(label_pos, pop_names)
 
-    plt.subplots_adjust(bottom=0.13,left=0.12,top=0.97,right=0.95)
+    plt.subplots_adjust(bottom=0.13,left=0.14,top=0.97,right=0.95)
     plt.savefig(os.path.join(path, "box_plot.png"))
 
 def __gather_metadata(path, name):

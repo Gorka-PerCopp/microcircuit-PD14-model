@@ -90,12 +90,13 @@ class Network:
         self.__create_neuronal_populations()
         if len(self.sim_dict["rec_dev"]) > 0:
             self.__create_recording_devices()
-        if self.net_dict["poisson_input"]:
+        if self.net_dict["bg_input_type"] == "poisson":
             self.__create_poisson_bg_input()
+        if self.stim_dict["dc_transient"]:
+            self.__create_dc_stim_input()
         if self.stim_dict["thalamic_input"]:
             self.__create_thalamic_stim_input()
-        if self.stim_dict["dc_input"]:
-            self.__create_dc_stim_input()
+        
 
     def connect(self):
         """Connects the network.
@@ -118,12 +119,12 @@ class Network:
 
         if len(self.sim_dict["rec_dev"]) > 0:
             self.__connect_recording_devices()
-        if self.net_dict["poisson_input"]:
+        if self.net_dict["bg_input_type"] == "poisson":
             self.__connect_poisson_bg_input()
+        if self.stim_dict["dc_transient"]:
+            self.__connect_dc_stim_input()
         if self.stim_dict["thalamic_input"]:
             self.__connect_thalamic_stim_input()
-        if self.stim_dict["dc_input"]:
-            self.__connect_dc_stim_input()
 
         nest.Prepare()
         nest.Cleanup()
@@ -226,6 +227,7 @@ Storing simulation metadata to {self.sim_dict['data_path']}
             (full_num_synapses * self.net_dict["N_scaling"] * self.net_dict["K_scaling"])
         ).astype(int)
         self.ext_indegrees = np.round((self.net_dict["K_ext"] * self.net_dict["K_scaling"])).astype(int)
+        #self.ext_indegrees = np.round((self.net_dict["K_ext"])).astype(int) # why scale external inputs?
 
         # conversion from PSPs to PSCs
         PSC_over_PSP = helpers.postsynaptic_potential_to_current(
@@ -237,11 +239,12 @@ Storing simulation metadata to {self.sim_dict['data_path']}
         PSC_ext = self.net_dict["PSP_exc_mean"] * PSC_over_PSP
 
         # DC input compensates for potentially missing Poisson input
-        if self.net_dict["poisson_input"]:
+        if self.net_dict["bg_input_type"] == "poisson":
             DC_amp = np.zeros(self.num_pops)
-        else:
-            if nest.Rank() == 0:
-                warnings.warn("DC input created to compensate missing Poisson input.\n")
+        #else:
+        elif self.net_dict["bg_input_type"] == "dc":
+            #if nest.Rank() == 0: # default case should not raise a warning
+                #warnings.warn("DC input created to compensate missing Poisson input.\n")
             DC_amp = helpers.dc_input_compensating_poisson(
                 self.net_dict["bg_rate"], self.net_dict["K_ext"], self.net_dict["neuron_params"]["tau_syn"], PSC_ext
             )
@@ -257,7 +260,7 @@ Storing simulation metadata to {self.sim_dict['data_path']}
                 self.net_dict["neuron_params"]["tau_syn"],
                 self.net_dict["full_mean_rates"],
                 DC_amp,
-                self.net_dict["poisson_input"],
+                self.net_dict["bg_input_type"],
                 self.net_dict["bg_rate"],
                 self.net_dict["K_ext"],
             )
@@ -266,7 +269,7 @@ Storing simulation metadata to {self.sim_dict['data_path']}
         self.weight_matrix_mean = PSC_matrix_mean
         self.weight_ext = PSC_ext
         self.DC_amp = DC_amp
-
+        
         # thalamic input
         if self.stim_dict["thalamic_input"]:
             num_th_synapses = helpers.num_synapses_from_conn_probs(
@@ -435,15 +438,15 @@ Storing simulation metadata to {self.sim_dict['data_path']}
         The final amplitude is the ``stim_dict['dc_amp'] * net_dict['K_ext']``.
 
         """
-        dc_amp_stim = self.stim_dict["dc_amp"] * self.net_dict["K_ext"]
+        dc_amp_stim = self.stim_dict["dc_transient_amp"] * self.net_dict["K_ext"]
 
         if nest.Rank() == 0:
             print("Creating DC generators for external stimulation.")
 
         dc_dict = {
             "amplitude": dc_amp_stim,
-            "start": self.stim_dict["dc_start"],
-            "stop": self.stim_dict["dc_start"] + self.stim_dict["dc_dur"],
+            "start": self.stim_dict["dc_transient_start"],
+            "stop": self.stim_dict["dc_transient_start"] + self.stim_dict["dc_transient_dur"],
         }
         self.dc_stim_input = nest.Create("dc_generator", n=self.num_pops, params=dc_dict)
 
