@@ -214,6 +214,32 @@ def adjust_weights_and_input_to_synapse_scaling(
 
     return PSC_matrix_new, PSC_ext_new, DC_amp_new
 
+def compute_rheo_base_current(V_th, E_L, C_m, tau_m):
+    """Computes the rheobase current for a given threshold voltage, resting potential, membrane capacitance, and membrane time constant.
+    
+    The rheobase current is the minimum current required to bring the membrane potential to the threshold voltage.
+
+    Parameters
+    ----------
+    V_th
+        Threshold voltage (in mV).
+    E_L
+        Resting membrane potential (in mV).
+    C_m
+        Membrane capacitance (in pF).
+    tau_m
+        Membrane time constant (in ms).
+
+    Returns
+    -------
+    rheo_base_current
+        Rheobase current (in pA).
+    """
+
+    I_rh = C_m * (V_th - E_L) / tau_m
+
+    return I_rh
+
 
 def plot_raster(path, name, begin, end, N_scaling):
     """Creates a spike raster plot of the network activity.
