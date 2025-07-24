@@ -28,6 +28,7 @@ import numpy as np
 import json
 from scipy.stats import ks_2samp as ks
 import matplotlib.pyplot as plt
+import random
 
 ## import model implementation
 from microcircuit import network
@@ -106,8 +107,7 @@ json.dump(spike_cvs, open(sim_dict['data_path'] + 'spike_cvs.json', 'w'), indent
 #                                      PAIRWISE-CORRELATION DISTRIBUTIONS
 #------------------------------------------------------------------------------------------------------
 # load data
-'''
-cc_binsize = 1. # in ms
+'''cc_binsize = 1. # in ms
 spike_ccs = {} # list of pairwise spike count correlations [seed][pop][correlation]
 for cseed, seed in enumerate(seeds):
     data_path = sim_dict['data_path'] + 'seed-%s/' % seed
@@ -116,9 +116,37 @@ for cseed, seed in enumerate(seeds):
     for pop in populations:
         spike_ccs[cseed][pop] = {}
 
+        pop_nodes = nodes[pop]  # list of neuron nodes for the population
         label = 'spike_recorder-' + str(nodes['spike_recorder_%s' % pop][0])
         spikes = helpers.load_spike_data(data_path, label)
-        spike_ccs[cseed][pop] = list(helpers.pairwise_spike_count_correlations(spikes, nodes[pop], recording_interval, cc_binsize))
+
+        # select subset of nodes for the population
+        #subpop_nodes = []  # list of lists of selected nodes
+        #subpop_spikes = []  # list of lists of selected spikes
+        n = len(pop_nodes)
+        k = max(1, n // 10)  # 10% of population (at least 1 neuron)
+
+        # Get random indices without replacement
+        selected_indices = random.sample(range(n), k)
+
+        # Get the selected neuron IDs and their spike times
+        selected_nodes = [pop_nodes[i] for i in selected_indices]
+
+        # find index of selected nodes in spikes['senders']
+        ind = [np.where(spikes['senders']==n) for n in selected_indices]
+        valid_ind = [i for i in ind if len(spikes['times'][i]) > 0]
+        subpop_spikes = {'senders': np.array(sum([spikes['senders'][i].astype(int).tolist() for i in valid_ind], [])),
+                         'times': np.array(sum([list(spikes['times'][i].tolist()) for i in valid_ind], []))
+                                 }
+
+        # Save to subpopulation lists
+        subpop_nodes = sum([spikes['senders'][i].astype(int).tolist() for i in valid_ind], [])
+        #subpop_spikes.append(selected_spike_trains)
+
+        print(subpop_nodes, subpop_spikes['senders'], subpop_spikes['times'])
+        json.dump(subpop_nodes, open(sim_dict['data_path'] + 'subpop_nodes_ccs_%s.json' % pop, 'w'), indent=4)
+
+        spike_ccs[cseed][pop] = list(helpers.pairwise_spike_count_correlations(subpop_spikes, subpop_nodes, recording_interval, cc_binsize))
 
 # store pairwise spike count correlations as json file
 json.dump(spike_ccs, open(sim_dict['data_path'] + 'spike_ccs.json', 'w'), indent=4)
