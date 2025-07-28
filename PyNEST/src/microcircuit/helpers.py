@@ -886,9 +886,9 @@ def pairwise_spike_count_correlations(spikes, pop, interval, binsize):
     for cn, n in enumerate(pop):
         ccs+=list(cc_matrix[cn,cn+1:])
 
-    ccs=np.array(ccs)
-    ind = np.where(np.isnan(ccs))
-    ccs = np.delete(ccs,ind)
+    #ccs=np.array(ccs)
+    #ind = np.where(np.isnan(ccs))
+    #ccs = np.delete(ccs,ind)
 
     return np.array(ccs)
 
@@ -896,6 +896,8 @@ def pairwise_spike_count_correlations(spikes, pop, interval, binsize):
 def data_distribution(data, label, unit='', hist_bin=None):
     '''
     Calculates distribution (histogram) of a given data array, and basic statistics.
+
+    If data is empty or contains only NaNs, the resulting histogram is set to zero for all bins and a warning is raised.
 
     Parameters:
     -----------
@@ -910,7 +912,7 @@ def data_distribution(data, label, unit='', hist_bin=None):
 
     hist_bin   None or float
                Bin width for calculation of histogram.
-               None (default): Use Freedman-Diaconis estimator.
+               None (default): Use Doane estimator.
 
     Returns:
     --------
@@ -927,6 +929,20 @@ def data_distribution(data, label, unit='', hist_bin=None):
     '''
 
     assert(len(data)>0)
+
+    nans = np.isnan(data)
+    if all(nans):
+        print('WARNING: Data is empty or contains only NaNs. Histogram is set to zero for all bins.')
+        return np.zeros(len(data)), np.zeros(len(data)), {
+            'sample_size': len(data),
+            'mean': np.nan,
+            'median': np.nan,
+            'min': np.nan,
+            'max': np.nan,
+            'sd': np.nan
+        }
+    else:
+        data = np.delete(data,np.where(nans))
 
     stat = {}
 
@@ -950,9 +966,9 @@ def data_distribution(data, label, unit='', hist_bin=None):
     ## histogram
     if hist_bin is None:
         print()
-        print('\tUsing Freedman-Diaconis estimator for histogram binsize.')
+        print('\tUsing Doane estimator for histogram binsize.')
         print()
-        bins = 'fd'  ## Freedman Diaconis estimator
+        bins = 'doane'  ## Doane estimator
     else:
         if isinstance(hist_bin, (int, float)):
             if hist_bin>0:
@@ -961,7 +977,7 @@ def data_distribution(data, label, unit='', hist_bin=None):
                 bins = np.array([0,stat['min'],2*stat['min']])
         elif isinstance(hist_bin, (list, np.ndarray)):
             bins = hist_bin
-            
+    
     data_hist, bins = np.histogram(data,bins=bins)    
     
     return data_hist, bins[:-1], stat
