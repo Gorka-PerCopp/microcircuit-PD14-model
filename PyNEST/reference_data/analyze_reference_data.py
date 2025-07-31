@@ -501,31 +501,8 @@ for cpop, binning in spike_ccs_binnings.items():
     width_diff = np.diff(max_bins)
     min_width = np.min(width_diff).tolist() if len(width_diff) > 0 else 0  # avoid division by zero
     spike_ccs_best_bins[cpop] = (max_range, min_width, max_bins.tolist())
+    print(f"Expected bin length for pop {cpop}: {len(spike_ccs_best_bins[cpop][2])}")
 
-'''
-spike_ccs_best_bins = {}
-for cpop, binning in spike_ccs_binnings.items():
-    flat_bins = []
-    min_diffs = []
-    for bins in binning:
-        print(bins)
-        flat_bins += bins.tolist()
-        if len(np.diff(bins)) > 0:
-            # ensure that there are at least two bins to calculate the difference
-            # otherwise np.diff will return an empty array
-            # and np.min will raise an error
-            min_diffs.append(np.min(np.diff(bins)))
-    max_range = np.max(flat_bins).tolist()
-    min_width = np.min(min_diffs).tolist()
-    tolerance = 2e-6
-    if abs(min_width) < tolerance:  # if min_width is zero, set it to a small value to avoid division by zero
-        # if min_width is zero, set it to a small value to avoid division by zero
-        spike_ccs_best_bins[cpop] = (max_range, tolerance, np.arange(0, max_range + tolerance, tolerance).tolist())
-    else:
-        spike_ccs_best_bins[cpop] = (max_range, min_width, np.arange(0, max_range + min_width, min_width).tolist())
-'''
-
-'''
 # calculate histogram for each seed and each population (data_distribution(...))
 spike_ccs_hists = [] # list of histograms [seed][pop][histogram]
 spike_ccs_hist_mat = {}
@@ -537,15 +514,15 @@ for cseed, seed in enumerate(seeds):
     for cpop, pop in enumerate(populations):
         spike_ccs_stats[cseed][pop] = {}
 
-        spike_ccs_pop = np.array(spike_ccs[cseed][pop])
+        spike_ccs_pop = np.array(spike_cvs[cseed][pop])
         spike_ccs_hist, bins, stats = helpers.data_distribution(spike_ccs_pop, pop, '', np.array(spike_ccs_best_bins[cpop][2]))
         spike_ccs_hists[cseed].append(spike_ccs_hist.tolist())
 
-        if not cpop in spike_cvs_hist_mat:
+        if not cpop in spike_ccs_hist_mat:
             spike_ccs_hist_mat[cpop] = np.zeros((len(seeds), len(spike_ccs_hist)))
         spike_ccs_hist_mat[cpop][cseed] = spike_ccs_hist / stats['sample_size']
         spike_ccs_stats[cseed][pop] = stats
-
+'''
 # plot of histograms for all populations
 fig3, axes3 = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
 
@@ -566,27 +543,27 @@ for cpop, pop in enumerate(populations):
     pop_std_hist  = np.std(pop_rel_hists, axis=0)
 
     for cseed in range(n_seeds):
-        ax3.plot(bin_centers, pop_rel_hists[cseed], '-', color=colors[-1], label=f'Seed {cseed}')
+        ax2.plot(bin_centers, pop_rel_hists[cseed], '-', color=colors[-1], label=f'Seed {cseed}')
 
-    ax3.plot(bin_centers, pop_mean_hist, 'k--', label='Mean')
-    ax3.fill_between(bin_centers, pop_mean_hist - pop_std_hist, pop_mean_hist + pop_std_hist, alpha=0.3)
-    ax3.text(0.45, 0.85, f'mean KS-distance: {mean_spike_ccs_ks[cpop]:.2f}', transform=ax2.transAxes, fontsize=6,
+    ax2.plot(bin_centers, pop_mean_hist, 'k--', label='Mean')
+    ax2.fill_between(bin_centers, pop_mean_hist - pop_std_hist, pop_mean_hist + pop_std_hist, alpha=0.3)
+    ax2.text(0.45, 0.85, f'mean KS-distance: {mean_spike_ccs_ks[cpop]:.2f}', transform=ax2.transAxes, fontsize=6,
          verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
  
-    ax4.hist(spike_ccs_ks_distances[pop]["list"], bins=10, color='gray', alpha=0.5)
-    ax4.axvline(mean_spike_ccs_ks[cpop], color='red', linestyle='--', label='Mean KS-distance')
-    ax4.axvline(mean_spike_ccs_ks[cpop] + std_spike_ccs_ks[cpop], color='blue', linestyle='--', label='Mean + Std')
-    ax4.axvline(mean_spike_ccs_ks[cpop] - std_spike_ccs_ks[cpop], color='blue', linestyle='--', label='Mean - Std')
-    ax4.set_xticks(np.arange(0, np.max(spike_ccs_ks_distances[pop]["list"]) + 0.1, 0.05))
+    ax3.hist(spike_ccs_ks_distances[pop]["list"], bins=10, color='gray', alpha=0.5)
+    ax3.axvline(mean_spike_ccs_ks[cpop], color='red', linestyle='--', label='Mean KS-distance')
+    ax3.axvline(mean_spike_ccs_ks[cpop] + std_spike_ccs_ks[cpop], color='blue', linestyle='--', label='Mean + Std')
+    ax3.axvline(mean_spike_ccs_ks[cpop] - std_spike_ccs_ks[cpop], color='blue', linestyle='--', label='Mean - Std')
+    ax3.set_xticks(np.arange(0, np.max(spike_ccs_ks_distances[pop]["list"]) + 0.1, 0.05))
 
+    ax2.set_title(pop)
     ax3.set_title(pop)
-    ax4.set_title(pop)
     if cpop // 2 == 3:
-        ax3.set_xlabel(r'CC')
-        ax4.set_xlabel(r'KS-distance across seeds')
+        ax2.set_xlabel(r'CC')
+        ax3.set_xlabel(r'KS-distance across seeds')
     if cpop % 2 == 0:
-        ax3.set_ylabel(r'rel. freq.')
-        ax4.set_ylabel(r'freq.')
+        ax2.set_ylabel(r'rel. freq.')
+        ax3.set_ylabel(r'freq.')
 plt.tight_layout()
 '''
 plt.show()
