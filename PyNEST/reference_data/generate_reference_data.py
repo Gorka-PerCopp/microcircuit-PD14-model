@@ -57,12 +57,12 @@ sim_dict.update(
 #####################
 
 ## set network scale
-scaling_factor = 0.1
+scaling_factor = 1
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
 
 ## set pre-simulation time to 0 and desired simulation time
-sim_dict["t_presim"] = 0.0
+sim_dict["t_presim"] = 500.0
 sim_dict["t_sim"] = 1.0e+4 # simulate for 10.0s
 
 ## set path for storing spike data and figures
