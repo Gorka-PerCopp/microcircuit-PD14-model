@@ -96,7 +96,10 @@ def main():
     ## current memory consumption of the python process (in MB)
     import psutil
     mem = psutil.Process().memory_info().rss / (1024 * 1024)
-    
+    #TODO store benchmark data in store_metadata
+    #net.benchmark_data = {}
+    #net.benchmark_data['memory'] = mem
+
     #####################
     ## plot spikes and firing rate distribution
     print()
