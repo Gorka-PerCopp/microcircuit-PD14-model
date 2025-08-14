@@ -69,11 +69,11 @@ TODOs:
 #-----------------------------------------------------------------------------------------------------
 # load data
 rates = {} # list of single neuron firing rates [seed][pop][neuron]
-nodes = helpers.json2dict(sim_dict['data_path'] + 'nodes.json')
 recording_interval = (max(t_min, sim_dict['t_presim']), sim_dict['t_presim'] + sim_dict['t_sim'])
 
 for cseed, seed in enumerate(seeds):
     data_path = sim_dict['data_path'] + 'seed-%s/' % seed
+    nodes = helpers.json2dict(data_path + 'nodes.json')
     rates[cseed] = {}
 
     for pop in populations:
@@ -94,6 +94,7 @@ json.dump(rates, open(sim_dict['data_path'] + 'rates.json', 'w'), indent=4)
 spike_cvs = {} # list of single neuron CVs [seed][pop][neuron]
 for cseed, seed in enumerate(seeds):
     data_path = sim_dict['data_path'] + 'seed-%s/' % seed
+    nodes = helpers.json2dict(data_path + 'nodes.json')
     spike_cvs[cseed] = {}
 
     for pop in populations:
@@ -114,6 +115,7 @@ cc_binsize = 1. # in ms
 spike_ccs = {}  # list of pairwise spike count correlations [seed][pop][correlation]
 for cseed, seed in enumerate(seeds):
     data_path = sim_dict['data_path'] + 'seed-%s/' % seed
+    nodes = helpers.json2dict(data_path + 'nodes.json')
     spike_ccs[cseed] = {}
     
     for pop in populations:
