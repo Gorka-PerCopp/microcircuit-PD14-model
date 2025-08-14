@@ -276,8 +276,7 @@ Storing simulation metadata to {self.sim_dict['data_path']}
                 for i, pop in enumerate(self.net_dict["populations"]):
                     if DC_amp[i] < I_rh:
                         warnings.warn(
-                            "Population {} is sub-threshold with downscaled DC input amplitude. "
-                            "Population may not fire.".format(pop)
+                            "\nPopulation {} is sub-threshold with downscaled DC input amplitude and may not fire. ".format(pop)
                         )          
 
         # store final parameters as class attributes
