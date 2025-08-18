@@ -1,4 +1,4 @@
-# PyNEST implementation of the cortical microcircuit model 
+# PyNEST implementation
 
 [![www.python.org](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org) 
 <a href="http://www.nest-simulator.org"> <img src="https://github.com/nest/nest-simulator/blob/master/doc/logos/nest-simulated.png" alt="NEST simulated" width="50"/></a> 

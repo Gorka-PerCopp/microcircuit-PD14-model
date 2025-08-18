@@ -1,0 +1,29 @@
+version: 2
+
+formats:
+  - pdf
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.12"
+  jobs:
+    build:
+      pdf:
+        - echo "building pdf $READTHEDOCS_OUTPUT"
+        - pdflatex -interaction=nonstopmode -recorder --jobname="microcircuit-pd14-model"  "docs/model_description/ModelDescription_microcircuit-PD14-model.tex"
+        - pdflatex -interaction=nonstopmode -recorder --jobname="microcircuit-pd14-model"  "docs/model_description/ModelDescription_microcircuit-PD14-model.tex"
+        - cp microcircuit-pd14-model.pdf _readthedocs/html/_static/
+        - ls _readthedocs/html/_static
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+
+python:
+   install:
+     - method: pip
+       path: PyNEST/
+       extra_requirements:
+         - doc
+
+
