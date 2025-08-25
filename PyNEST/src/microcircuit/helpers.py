@@ -638,6 +638,13 @@ def load_spike_data(path, label, time_interval = None, pop = None, skip_rows = 3
 
         spike_dict['senders'] = spikes[:,0]
         spike_dict['times'] = spikes[:,1]
+
+        ind = np.argsort(spike_dict['times'])
+
+        spike_dict['senders'] = spike_dict['senders'][ind]
+        spike_dict['times'] = spike_dict['times'][ind]
+
+        print(spike_dict)
     
     return spike_dict
 
@@ -792,10 +799,12 @@ def single_neuron_isi_cvs(spikes, pop, interval):
     cvs = []
     for n in pop:
         ind = np.where(spikes['senders'] == n)
-        spike_times = spikes['times'][ind]
+        spike_times = np.sort(spikes['times'][ind])
         if len(spike_times) > 2:            
             intervals = np.diff(spike_times)
-            cvs += [np.std(intervals)/np.mean(intervals)]
+            cv = np.std(intervals)/np.mean(intervals)
+            assert( all( cv != err for err in ( np.nan, np.inf ) ) ), ( cv, n, intervals, spike_times )
+            cvs.append( cv )
 
     return np.array(cvs)
 
@@ -932,16 +941,18 @@ def data_distribution(data, label, unit='', hist_bin=None):
 
     nans = np.isnan(data)
     if all(nans):
-        print('WARNING: Data is empty or contains only NaNs. Histogram is set to zero for all bins.')
-        return np.zeros(len(data)), np.zeros(len(data)), {
-            'sample_size': len(data),
-            'mean': np.nan,
-            'median': np.nan,
-            'min': np.nan,
-            'max': np.nan,
-            'sd': np.nan
-        }
+        print('WARNING: Data contains only NaNs. Histogram is set to zero for all bins.')
+        #return np.zeros(len(data)), np.zeros(len(data)), {
+            #'sample_size': 0,
+            #'mean': np.nan,
+            #'median': np.nan,
+            #'min': np.nan,
+            #'max': np.nan,
+            #'sd': np.nan
+        #}
+        return None, None, None
     else:
+        print('WARNING: Data contains %d NaNs. These are ignored in the statistics.' % sum(nans))
         data = np.delete(data,np.where(nans))
 
     stat = {}
