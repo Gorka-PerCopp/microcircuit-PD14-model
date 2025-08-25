@@ -46,7 +46,7 @@ seed = 12345 # seed for reproducibility
 #####################
 
 ## set network scale
-scaling_factor = 0.1
+scaling_factor = 1.
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
 
@@ -386,6 +386,7 @@ for cpop, pop in enumerate(populations):
         ax.set_ylabel(r'rel. freq.')
         ax1.set_ylabel(r'freq.')
 plt.tight_layout()
+plt.savefig('data/rate_distributions.pdf')
 
 #------------------------------------------------------------------------------------------------------
 #                                      PLOT ISI CV DISTRIBUTIONS
@@ -477,6 +478,7 @@ for cpop, pop in enumerate(populations):
         ax2.set_ylabel(r'rel. freq.')
         ax3.set_ylabel(r'freq.')
 plt.tight_layout()
+plt.savefig('data/ISI_CV_distributions.pdf')
 
 #------------------------------------------------------------------------------------------------------
 #                                      PLOT SPIKE CCS DISTRIBUTIONS
@@ -568,4 +570,3 @@ for cpop, pop in enumerate(populations):
         ax3.set_ylabel(r'freq.')
 plt.tight_layout()
 '''
-plt.show()
