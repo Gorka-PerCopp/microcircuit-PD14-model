@@ -142,7 +142,7 @@ for cseed, seed in enumerate(seeds):
                          'times': spikes['times'][valid_ind]}
         '''
         #spike_ccs[cseed][pop] = list(helpers.pairwise_spike_count_correlations(subpop_spikes, valid_ind, recording_interval, cc_binsize))
-        spike_ccs[cseed][pop] = list(helpers.pairwise_spike_count_correlations(spikes, selected_nodes,          recording_interval, cc_binsize))
+        spike_ccs[cseed][pop] = list(helpers.pairwise_spike_count_correlations(spikes, selected_nodes, recording_interval, cc_binsize))
 
 # store pairwise spike count correlations as json file
 json.dump(spike_ccs, open(sim_dict['data_path'] + 'spike_ccs.json', 'w'), indent=4)
@@ -371,7 +371,7 @@ for cpop, pop in enumerate(populations):
     ax.text(0.45, 0.85, f'mean KS-distance: {mean_rate_ks[cpop]:.2f}', transform=ax.transAxes, fontsize=6,
          verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
  
-    ax1.hist(rate_ks_distances[pop]["list"], bins=10, color='gray', alpha=0.5)
+    ax1.hist(rate_ks_distances[pop]["list"], bins=n_seeds, color='gray', alpha=0.5)
     ax1.axvline(mean_rate_ks[cpop], color='red', linestyle='--', label='Mean KS-distance')
     ax1.axvline(mean_rate_ks[cpop] + std_rate_ks[cpop], color='blue', linestyle='--', label='Mean + Std')
     ax1.axvline(mean_rate_ks[cpop] - std_rate_ks[cpop], color='blue', linestyle='--', label='Mean - Std')
@@ -386,7 +386,8 @@ for cpop, pop in enumerate(populations):
         ax.set_ylabel(r'rel. freq.')
         ax1.set_ylabel(r'freq.')
 plt.tight_layout()
-plt.savefig('data/rate_distributions.pdf')
+fig.savefig('data/rate_distributions.pdf')
+fig1.savefig('data/rate_KS_distances.pdf')
 
 #------------------------------------------------------------------------------------------------------
 #                                      PLOT ISI CV DISTRIBUTIONS
@@ -463,7 +464,7 @@ for cpop, pop in enumerate(populations):
     ax2.text(0.45, 0.85, f'mean KS-distance: {mean_spike_cvs_ks[cpop]:.2f}', transform=ax2.transAxes, fontsize=6,
          verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
  
-    ax3.hist(spike_cvs_ks_distances[pop]["list"], bins=10, color='gray', alpha=0.5)
+    ax3.hist(spike_cvs_ks_distances[pop]["list"], bins=n_seeds, color='gray', alpha=0.5)
     ax3.axvline(mean_spike_cvs_ks[cpop], color='red', linestyle='--', label='Mean KS-distance')
     ax3.axvline(mean_spike_cvs_ks[cpop] + std_spike_cvs_ks[cpop], color='blue', linestyle='--', label='Mean + Std')
     ax3.axvline(mean_spike_cvs_ks[cpop] - std_spike_cvs_ks[cpop], color='blue', linestyle='--', label='Mean - Std')
@@ -478,7 +479,8 @@ for cpop, pop in enumerate(populations):
         ax2.set_ylabel(r'rel. freq.')
         ax3.set_ylabel(r'freq.')
 plt.tight_layout()
-plt.savefig('data/ISI_CV_distributions.pdf')
+fig2.savefig('data/ISI_CV_distributions.pdf')
+fig3.savefig('data/ISI_CV_KS_distances.pdf')
 
 #------------------------------------------------------------------------------------------------------
 #                                      PLOT SPIKE CCS DISTRIBUTIONS
@@ -505,7 +507,6 @@ for cpop, binning in spike_ccs_binnings.items():
     width_diff = np.diff(max_bins)
     min_width = np.min(width_diff).tolist() if len(width_diff) > 0 else 0  # avoid division by zero
     spike_ccs_best_bins[cpop] = (max_range, min_width, max_bins.tolist())
-    print(f"Expected bin length for pop {cpop}: {len(spike_ccs_best_bins[cpop][2])}")
 
 # calculate histogram for each seed and each population (data_distribution(...))
 spike_ccs_hists = [] # list of histograms [seed][pop][histogram]
@@ -519,6 +520,11 @@ for cseed, seed in enumerate(seeds):
         spike_ccs_stats[cseed][pop] = {}
 
         spike_ccs_pop = np.array(spike_cvs[cseed][pop])
+
+        # clean data: remove NaN
+        ind = np.where( np.isnan( spike_ccs_pop ) )
+        spike_ccs_pop = np.delete( spike_ccs_pop, ind )
+
         spike_ccs_hist, bins, stats = helpers.data_distribution(spike_ccs_pop, pop, '', np.array(spike_ccs_best_bins[cpop][2]))
         spike_ccs_hists[cseed].append(spike_ccs_hist.tolist())
 
@@ -526,15 +532,15 @@ for cseed, seed in enumerate(seeds):
             spike_ccs_hist_mat[cpop] = np.zeros((len(seeds), len(spike_ccs_hist)))
         spike_ccs_hist_mat[cpop][cseed] = spike_ccs_hist / stats['sample_size']
         spike_ccs_stats[cseed][pop] = stats
-'''
+
 # plot of histograms for all populations
-fig3, axes3 = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
+fig4, axes4 = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
 
 # plot of distributions of KS -distances over seeds
-fig4, axes4 = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
+fig5, axes5 = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
 for cpop, pop in enumerate(populations):
-    ax3 = axes3[cpop // 2, cpop % 2]     # axes for each population
-    ax4 = axes4[cpop // 2, cpop % 2]
+    ax4 = axes4[cpop // 2, cpop % 2]     # axes for each population
+    ax5 = axes5[cpop // 2, cpop % 2]
 
     bin_edges = spike_ccs_best_bins[cpop][2]
     bin_centers = bin_edges[:-1]  # Left edges for bar alignment 
@@ -547,26 +553,38 @@ for cpop, pop in enumerate(populations):
     pop_std_hist  = np.std(pop_rel_hists, axis=0)
 
     for cseed in range(n_seeds):
-        ax2.plot(bin_centers, pop_rel_hists[cseed], '-', color=colors[-1], label=f'Seed {cseed}')
+        ax4.plot(bin_centers, pop_rel_hists[cseed], '-', color=colors[-1], label=f'Seed {cseed}')
 
-    ax2.plot(bin_centers, pop_mean_hist, 'k--', label='Mean')
-    ax2.fill_between(bin_centers, pop_mean_hist - pop_std_hist, pop_mean_hist + pop_std_hist, alpha=0.3)
-    ax2.text(0.45, 0.85, f'mean KS-distance: {mean_spike_ccs_ks[cpop]:.2f}', transform=ax2.transAxes, fontsize=6,
-         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
- 
-    ax3.hist(spike_ccs_ks_distances[pop]["list"], bins=10, color='gray', alpha=0.5)
-    ax3.axvline(mean_spike_ccs_ks[cpop], color='red', linestyle='--', label='Mean KS-distance')
-    ax3.axvline(mean_spike_ccs_ks[cpop] + std_spike_ccs_ks[cpop], color='blue', linestyle='--', label='Mean + Std')
-    ax3.axvline(mean_spike_ccs_ks[cpop] - std_spike_ccs_ks[cpop], color='blue', linestyle='--', label='Mean - Std')
-    ax3.set_xticks(np.arange(0, np.max(spike_ccs_ks_distances[pop]["list"]) + 0.1, 0.05))
+    ax4.plot(bin_centers, pop_mean_hist, 'k--', label='Mean')
+    ax4.fill_between(bin_centers, pop_mean_hist - pop_std_hist, pop_mean_hist + pop_std_hist, alpha=0.3)
+    
+    # clean data: remove NaNs
+    ind = np.where( np.isnan( spike_ccs_ks_distances[pop]["list"] ) )
+    spike_ccs_ks_distances[pop]["list"] = np.delete( spike_ccs_ks_distances[pop]["list"], ind )
+    
+    mean = std = None
+    if len( spike_ccs_ks_distances[pop]["list"] ) > 0:
+        mean = np.mean( spike_ccs_ks_distances[pop]["list"] )
+        std = np.std( spike_ccs_ks_distances[pop]["list"] )
 
-    ax2.set_title(pop)
-    ax3.set_title(pop)
+    if mean is not None:
+        ax4.text(0.45, 0.85, f'mean KS-distance: {mean:.2f}', transform=ax4.transAxes, fontsize=6,
+            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
+    
+        ax5.hist(spike_ccs_ks_distances[pop]["list"], bins=n_seeds, color='gray', alpha=0.5)
+        ax5.axvline(mean, color='red', linestyle='--', label='Mean KS-distance')
+        ax5.axvline(mean + std, color='blue', linestyle='--', label='Mean + Std')
+        ax5.axvline(mean - std, color='blue', linestyle='--', label='Mean - Std')
+        ax5.set_xticks(np.arange(0, np.max(spike_ccs_ks_distances[pop]["list"]) + 0.1, 0.05))
+
+    ax4.set_title(pop)
+    ax5.set_title(pop)
     if cpop // 2 == 3:
-        ax2.set_xlabel(r'CC')
-        ax3.set_xlabel(r'KS-distance across seeds')
+        ax4.set_xlabel(r'CC')
+        ax5.set_xlabel(r'KS-distance across seeds')
     if cpop % 2 == 0:
-        ax2.set_ylabel(r'rel. freq.')
-        ax3.set_ylabel(r'freq.')
+        ax4.set_ylabel(r'rel. freq.')
+        ax5.set_ylabel(r'freq.')
 plt.tight_layout()
-'''
+fig4.savefig('data/spike_CC_distributions.pdf')
+fig5.savefig('data/spike_CC_KS_distances.pdf')

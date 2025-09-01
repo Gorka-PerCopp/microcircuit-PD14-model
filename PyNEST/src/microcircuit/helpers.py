@@ -643,8 +643,6 @@ def load_spike_data(path, label, time_interval = None, pop = None, skip_rows = 3
 
         spike_dict['senders'] = spike_dict['senders'][ind]
         spike_dict['times'] = spike_dict['times'][ind]
-
-        print(spike_dict)
     
     return spike_dict
 
