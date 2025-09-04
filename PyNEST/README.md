@@ -43,8 +43,9 @@ After installation, the `microcircuit` python package can be imported in a pytho
 import microcircuit
 ```
 
-See [this example](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST/examples/run_microcircuit.py) for a more detailed illustration of how the package can be used.
-  
+See [this example](https://microcircuit-PD14-model.readthedocs.io/en/latest/auto_examples/index.html) for a more detailed illustration of how the package can be used.
+
+
 ## Software requirements
 
 - NEST ([NEST installation](https://nest-simulator.readthedocs.io/en/stable/installation))
@@ -54,12 +55,12 @@ See [this example](https://github.com/INM-6/microcircuit-PD14-model/blob/main/Py
 
 ## Memory requirements
 
-| scaling factor (`N_scaling`=`K_scaling`)  | Memory    |
-|-------------------------------------------|-----------|
-| 0.1 (default)                             |  490 MB   |
-| 0.2                                       | 1200 MB   |
-| 0.5                                       | 4400 MB   |
-| 1                                         |   14 GB   |
+| scaling factor (`= N_scaling = K_scaling`)  | Memory    |
+|---------------------------------------------|-----------|
+| 0.1 (default)                               |  490 MB   |
+| 0.2                                         | 1200 MB   |
+| 0.5                                         | 4400 MB   |
+| 1                                           |   14 GB   |
 
 ## Performance benchmarking
 Recent performance benchmarking results for the microcircuit model can be found [here](https://nest-simulator.org/documentation/benchmark_results.html).

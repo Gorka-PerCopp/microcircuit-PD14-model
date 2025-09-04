@@ -8,9 +8,16 @@ build:
   tools:
     python: "3.12"
   jobs:
+    pre_build:
+      # Copy figures to the appropriate directory within docs
+      - mkdir -p docs/_static/images
+      - cp -r figures/* docs/_static/images/
+      # Replace GitHub paths with Sphinx paths in README.md
+      - sed -i "s|figures/|_static/images/|g" README.md
     build:
-      pdf:
+     pdf:
         - echo "building pdf $READTHEDOCS_OUTPUT"
+        - sed -i "s|{figures/|{docs/model_description/figures/|g" docs/model_description/ModelDescription_microcircuit-PD14-model.tex
         - pdflatex -interaction=nonstopmode -recorder --jobname="microcircuit-pd14-model"  "docs/model_description/ModelDescription_microcircuit-PD14-model.tex"
         - pdflatex -interaction=nonstopmode -recorder --jobname="microcircuit-pd14-model"  "docs/model_description/ModelDescription_microcircuit-PD14-model.tex"
         - cp microcircuit-pd14-model.pdf _readthedocs/html/_static/
