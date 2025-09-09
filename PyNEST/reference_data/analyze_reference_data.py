@@ -437,6 +437,8 @@ for cseed, seed in enumerate(seeds):
         spike_cvs_hist_mat[cpop][cseed] = spike_cvs_hist / stats['sample_size']
         spike_cvs_stats[cseed][pop] = stats
 
+json.dump(spike_cvs_stats, open(sim_dict['data_path'] + 'cv_stats.json', 'w'), indent=4)
+
 # plot of histograms for all populations
 fig2, axes2 = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
 
@@ -519,12 +521,12 @@ for cseed, seed in enumerate(seeds):
     for cpop, pop in enumerate(populations):
         spike_ccs_stats[cseed][pop] = {}
 
-        spike_ccs_pop = np.array(spike_cvs[cseed][pop])
+        spike_ccs_pop = np.array( spike_ccs[cseed][pop] )
 
         # clean data: remove NaN
         ind = np.where( np.isnan( spike_ccs_pop ) )
         spike_ccs_pop = np.delete( spike_ccs_pop, ind )
-
+        #print(spike_ccs_pop)
         spike_ccs_hist, bins, stats = helpers.data_distribution(spike_ccs_pop, pop, '', np.array(spike_ccs_best_bins[cpop][2]))
         spike_ccs_hists[cseed].append(spike_ccs_hist.tolist())
 
@@ -532,6 +534,8 @@ for cseed, seed in enumerate(seeds):
             spike_ccs_hist_mat[cpop] = np.zeros((len(seeds), len(spike_ccs_hist)))
         spike_ccs_hist_mat[cpop][cseed] = spike_ccs_hist / stats['sample_size']
         spike_ccs_stats[cseed][pop] = stats
+
+json.dump(spike_ccs_stats, open(sim_dict['data_path'] + 'cc_stats.json', 'w'), indent=4)
 
 # plot of histograms for all populations
 fig4, axes4 = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
