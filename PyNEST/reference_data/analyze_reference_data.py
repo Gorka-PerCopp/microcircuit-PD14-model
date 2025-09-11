@@ -63,7 +63,7 @@ TODOs:
 2. CV distributions
 3. CC distributions
 '''
-
+'''
 #-----------------------------------------------------------------------------------------------------
 #                                      RATE DISTRIBUTIONS
 #-----------------------------------------------------------------------------------------------------
@@ -132,16 +132,7 @@ for cseed, seed in enumerate(seeds):
         # Get random indices without replacement
         #selected_indices = random.sample(range(n), k)
         selected_nodes = random.sample(pop_nodes, k)
-        '''
-        # Get the selected neuron IDs and their spike times
-        selected_nodes = [pop_nodes[i] for i in selected_indices]
-
-        # find index of selected nodes in spikes['senders']
-        valid_ind = [i for i in selected_nodes if i in spikes['senders']]
-        subpop_spikes = {'senders': np.array(valid_ind),
-                         'times': spikes['times'][valid_ind]}
-        '''
-        #spike_ccs[cseed][pop] = list(helpers.pairwise_spike_count_correlations(subpop_spikes, valid_ind, recording_interval, cc_binsize))
+        
         spike_ccs[cseed][pop] = list(helpers.pairwise_spike_count_correlations(spikes, selected_nodes, recording_interval, cc_binsize))
 
 # store pairwise spike count correlations as json file
@@ -591,4 +582,222 @@ for cpop, pop in enumerate(populations):
         ax5.set_ylabel(r'freq.')
 plt.tight_layout()
 fig4.savefig('data/spike_CC_distributions.pdf')
-fig5.savefig('data/spike_CC_KS_distances.pdf')
+fig5.savefig('data/spike_CC_KS_distances.pdf')'''
+
+########################################################################################################################
+#                                   Define auxiliary functions to analyze and plot data                                #
+########################################################################################################################
+
+def analyze_single_neuron_stats(observable_name, func):
+    observable = {} # list of single neuron observable [seed][pop][neuron]
+    recording_interval = ( max( t_min, sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
+
+    for cseed, seed in enumerate( seeds ):
+        data_path = sim_dict['data_path'] + 'seed-%s/' % seed
+        nodes = helpers.json2dict( data_path + 'nodes.json' )
+        observable[cseed] = {}
+
+        for pop in populations:
+            observable[cseed][pop] = {}
+
+            label = 'spike_recorder-' + str( nodes['spike_recorder_%s' % pop][0] )
+            spikes = helpers.load_spike_data( data_path, label )
+            observable[cseed][pop] = list( func( spikes, nodes[pop], recording_interval ) )
+
+    # store observable as json file
+
+    json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
+
+    return observable
+
+def analyze_pairwise_stats( observable_name, func ):
+
+    recording_interval = ( max (t_min, sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
+
+    cc_binsize = 1. # in ms
+    observable = {}  # list of pairwise spike count correlations [seed][pop][correlation]
+    for cseed, seed in enumerate( seeds ):
+        data_path = sim_dict['data_path'] + 'seed-%s/' % seed
+        nodes = helpers.json2dict( data_path + 'nodes.json' )
+        observable[cseed] = {}
+        
+        for pop in populations:
+            observable[cseed][pop] = {}
+
+            pop_nodes = nodes[pop]  # list of neuron nodes for the population
+            label = 'spike_recorder-' + str( nodes['spike_recorder_%s' % pop][0] )
+            spikes = helpers.load_spike_data( data_path, label )
+
+            # select subset of nodes for the population
+            k = 100
+
+            # Get random indices without replacement
+            selected_nodes = random.sample( pop_nodes, k )
+
+            observable[cseed][pop] = list( func( spikes, selected_nodes, recording_interval, cc_binsize ) )
+
+    # store pairwise spike count correlations as json file
+    json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
+
+    return observable
+
+def compute_ks_distances( observable, observable_name ):
+    observable_ks_distances = {} # list of ks distances [pop][seed][ks_distance to other seed]
+    for cpop, pop in enumerate( populations ):
+        observable_ks_distances[pop] = {
+            "seeds": {},    # values across seeds
+            "list": []      # to compute mean and std
+        }
+
+        # clean data: remove NaNs
+        for cseed, seed in enumerate( seeds ):
+            observable[cseed][pop] = np.delete( observable[cseed][pop], np.where( np.isnan( observable[cseed][pop] ) ) )
+
+        n_seeds = len( seeds ) 
+
+        for i in range( n_seeds ):
+            observable_ks_distances[pop]["seeds"][i] = {}
+            for j in range( i+1, n_seeds ):
+                observable_ks_distance = ks( observable[i][pop], observable[j][pop] )[0].tolist()
+                observable_ks_distances[pop]["seeds"][i][j] = observable_ks_distance
+                observable_ks_distances[pop]["list"].append( observable_ks_distance )
+
+    # save ks distances as json file
+    json.dump( observable_ks_distances, open( sim_dict['data_path'] + f'{observable_name}_ks_distances.json', 'w'), indent=4 )
+
+    return observable_ks_distances
+
+def compute_data_dist( observable, observable_name, units='' ):
+    # compute the best binning for each histogram 
+    observable_binnings = {} # list of binnings [seed][pop][bins]
+    for cseed, seed in enumerate( seeds ):
+        # calculate histogram for each population
+        for cpop, pop in enumerate( populations ):
+            _, bins, _ = helpers.data_distribution( np.array(observable[cseed][pop]), pop, f'{units}' )
+            if cpop not in observable_binnings:
+                observable_binnings[cpop] = []
+            observable_binnings[cpop].append( bins )
+
+    observable_best_bins = {}
+    for cpop, binning in observable_binnings.items():
+        max_bins = sorted( binning, key=lambda x: len(x), reverse=True )[0]  # take the binning with the most bins
+        max_range = np.max( max_bins ).tolist()
+        width_diff = np.diff( max_bins )
+        min_width = np.min( width_diff ).tolist() if len( width_diff ) > 0 else 0 
+        observable_best_bins[cpop] = (max_range, min_width, np.arange( 0, max_range + min_width, min_width ).tolist())
+
+    # calculate histogram for each seed and each population (data_distribution(...))
+    observable_hists = [] # list of histograms [seed][pop][histogram]
+    observable_hist_mat = {}
+    observable_stats = {} # list of statistics [seed][pop][stats] (mean, std, etc.)
+    for cseed, seed in enumerate( seeds ):
+        observable_stats[cseed] = {}
+        observable_hists.append([])
+        for cpop, pop in enumerate( populations ):
+            observable_stats[cseed][pop] = {}
+
+            observable_pop = np.array( observable[cseed][pop] )
+            observable_hist, bins, stats = helpers.data_distribution( observable_pop, pop, f'{units}', np.array( observable_best_bins[cpop][2] ) )
+            observable_hists[cseed].append( observable_hist.tolist() )
+            if not cpop in observable_hist_mat:
+                observable_hist_mat[cpop] = np.zeros( ( len( seeds ), len( observable_hist ) ) )
+            observable_hist_mat[cpop][cseed] = observable_hist / stats['sample_size']
+            observable_stats[cseed][pop] = stats
+
+    # save statistics as json file
+    json.dump(observable_stats, open(sim_dict['data_path'] + f'{observable_name}_stats.json', 'w'), indent=4)
+
+    return observable_hist_mat, observable_best_bins, observable_stats
+
+def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_best_bins, observable_ks_distances):
+
+    from matplotlib import rcParams
+    rcParams['figure.figsize']    = (4,3)
+    rcParams['figure.dpi']        = 300
+    rcParams['font.family']       = 'sans-serif'
+    rcParams['font.size']         = 8
+    rcParams['legend.fontsize']   = 8
+    rcParams['axes.titlesize']    = 10
+    rcParams['axes.labelsize']    = 8
+    rcParams['ytick.labelsize']   = 8
+    rcParams['xtick.labelsize']   = 8
+    rcParams['ytick.major.size']  = 0   ## remove y ticks      
+    rcParams['text.usetex']       = False 
+    rcParams['legend.framealpha'] = 1.0
+    rcParams['legend.edgecolor']  = 'k'
+    data_path = sim_dict['data_path']
+    # plot of histograms for all populations
+    fig_hist, axes_hist = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
+
+    # plot of distributions of KS -distances over seeds
+    fig_ks, axes_ks = plt.subplots(4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.5})
+    for cpop, pop in enumerate(populations):
+        ax_hist = axes_hist[cpop // 2, cpop % 2]     # axes for each population
+        ax_ks = axes_ks[cpop // 2, cpop % 2]
+
+        bin_edges = observable_best_bins[cpop][2]
+        bin_centers = bin_edges[:-1]  # Left edges for bar alignment 
+
+        #for cseed in range(n_seeds):
+        pop_rel_hists = observable_hist_mat[cpop]
+
+        # calculate population mean and std histograms across seeds
+        pop_mean_hist = np.mean(pop_rel_hists, axis=0)
+        pop_std_hist  = np.std(pop_rel_hists, axis=0)
+
+        n_seeds = len( seeds )
+        grayscale = np.linspace(0.2, 0.8, n_seeds)
+        colors = [(g, g, g) for g in grayscale]
+
+        for cseed in range(n_seeds):
+            ax_hist.plot(bin_centers, pop_rel_hists[cseed], '-', color=colors[-1], label=f'Seed {cseed}')
+
+        ax_hist.plot(bin_centers, pop_mean_hist, 'k--', label='Mean')
+        ax_hist.fill_between(bin_centers, pop_mean_hist - pop_std_hist, pop_mean_hist + pop_std_hist, alpha=0.3)
+        
+        mean = std = None
+        if len( observable_ks_distances[pop]["list"] ) > 0:
+            mean = np.mean( observable_ks_distances[pop]["list"] )
+            std = np.std( observable_ks_distances[pop]["list"] )
+
+        if mean is not None:
+            ax_hist.text(0.45, 0.85, f'mean KS-distance: {mean:.2f}', transform=ax_hist.transAxes, fontsize=6,
+                verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
+        
+            ax_ks.hist(observable_ks_distances[pop]["list"], bins=n_seeds, color='gray', alpha=0.5)
+            ax_ks.axvline(mean, color='red', linestyle='--', label='Mean KS-distance')
+            ax_ks.axvline(mean + std, color='blue', linestyle='--', label='Mean + Std')
+            ax_ks.axvline(mean - std, color='blue', linestyle='--', label='Mean - Std')
+            ax_ks.set_xticks(np.arange(0, np.max(observable_ks_distances[pop]["list"]) + 0.1, 0.05))
+
+        ax_hist.set_title(pop)
+        ax_ks.set_title(pop)
+        if cpop // 2 == 3:
+            ax_hist.set_xlabel(f'{x_label}')
+            ax_ks.set_xlabel(r'KS-distance')
+        if cpop % 2 == 0:
+            ax_hist.set_ylabel(r'rel. freq.')
+            ax_ks.set_ylabel(r'freq.')
+    plt.tight_layout()
+    fig_hist.savefig(f'{data_path}{observable_name}_distributions.pdf')
+    fig_ks.savefig(f'{data_path}{observable_name}_KS_distances.pdf')
+
+def main():
+    rates = analyze_single_neuron_stats( 'rates', helpers.time_averaged_single_neuron_firing_rates )
+    spike_cvs = analyze_single_neuron_stats( 'spike_cvs', helpers.single_neuron_isi_cvs )
+    spike_ccs = analyze_pairwise_stats( 'spike_ccs', helpers.pairwise_spike_count_correlations )
+
+    rate_ks_distances = compute_ks_distances( rates, 'rate' )
+    spike_cvs_ks_distances = compute_ks_distances( spike_cvs, 'spike_cvs' )
+    spike_ccs_ks_distances = compute_ks_distances( spike_ccs, 'spike_ccs' )
+
+    rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( rates, 'rate', '1/s' )
+    spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( spike_cvs, 'spike_cvs' )
+    spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( spike_ccs, 'spike_ccs' )
+
+    plot_data_dists( 'rate', 'mean firing rate [s$^{-1}$]', rate_hist_mat, rate_best_bins, rate_ks_distances )
+    plot_data_dists( 'spike_cvs', 'ISI CV', spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_ks_distances )
+    plot_data_dists( 'spike_ccs', 'CC', spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances )
+
+if __name__ == "__main__":
+    main()
