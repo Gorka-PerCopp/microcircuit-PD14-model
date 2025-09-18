@@ -39,23 +39,26 @@ from microcircuit.network_params import default_net_dict as net_dict
 from microcircuit.sim_params import default_sim_dict as sim_dict
 from microcircuit.stimulus_params import default_stim_dict as stim_dict
 
+## import analysis parameters
+from analysis_params import default_analysis_dict as analysis_dict
+
 #####################
 populations = net_dict['populations'] # list of populations
-t_min = 500.0 # in ms
-seed = 12345 # seed for reproducibility
+#t_min = 500.0 # in ms
+#seed = 12345 # seed for reproducibility
 #####################
 
 ## set network scale
-scaling_factor = 1.
+scaling_factor = analysis_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
 
-np.random.seed(seed)  # set seed for reproducibility
+random.seed( analysis_dict['cc_seed'] )  # set seed for reproducibility
 
 ## set path for storing spike data and figures
 ### TODO revise data path
 #sim_dict['data_path'] = '../examples/data_scale_%.2f/' % scaling_factor
-seeds = ['12345' + str(i) for i in range(0, 10)] # list of seeds
+seeds = analysis_dict['benchmark_seeds'] # list of seeds
 
 '''
 TODOs:
@@ -70,7 +73,7 @@ TODOs:
 
 def analyze_single_neuron_stats(observable_name, func):
     observable = {} # list of single neuron observable [seed][pop][neuron]
-    recording_interval = ( max( t_min, sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
+    recording_interval = ( max( analysis_dict['t_min'], sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
 
     for cseed, seed in enumerate( seeds ):
         data_path = sim_dict['data_path'] + 'seed-%s/' % seed
@@ -85,16 +88,17 @@ def analyze_single_neuron_stats(observable_name, func):
             observable[cseed][pop] = list( func( spikes, nodes[pop], recording_interval ) )
 
     # store observable as json file
+    helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )
 
-    json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
+    #json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
 
     return observable
 
 def analyze_pairwise_stats( observable_name, func ):
 
-    recording_interval = ( max (t_min, sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
+    recording_interval = ( max ( analysis_dict['t_min'], sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
 
-    cc_binsize = 2. # in ms
+    #cc_binsize = 2. # in ms
     observable = {}  # list of pairwise spike count correlations [seed][pop][correlation]
     for cseed, seed in enumerate( seeds ):
         data_path = sim_dict['data_path'] + 'seed-%s/' % seed
@@ -108,16 +112,14 @@ def analyze_pairwise_stats( observable_name, func ):
             label = 'spike_recorder-' + str( nodes['spike_recorder_%s' % pop][0] )
             spikes = helpers.load_spike_data( data_path, label )
 
-            # select subset of nodes for the population
-            k = 200
-
             # Get random indices without replacement
-            selected_nodes = random.sample( pop_nodes, k )
+            selected_nodes = random.sample( pop_nodes, analysis_dict['k'] )
 
-            observable[cseed][pop] = list( func( spikes, selected_nodes, recording_interval, cc_binsize ) )
+            observable[cseed][pop] = list( func( spikes, selected_nodes, recording_interval, analysis_dict['cc_binsize'] ) )
 
     # store pairwise spike count correlations as json file
-    json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
+    helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )
+    #json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
 
     return observable
 
@@ -143,10 +145,12 @@ def compute_ks_distances( observable, observable_name ):
                 observable_ks_distances[pop]["list"].append( observable_ks_distance )
 
     # save ks distances as json file
-    json.dump( observable_ks_distances, open( sim_dict['data_path'] + f'{observable_name}_ks_distances.json', 'w'), indent=4 )
+    helpers.dict2json( observable_ks_distances, sim_dict['data_path'] + f'{observable_name}_ks_distances.json' )
+    #json.dump( observable_ks_distances, open( sim_dict['data_path'] + f'{observable_name}_ks_distances.json', 'w'), indent=4 )
 
     return observable_ks_distances
 
+'''
 def compute_data_dist( observable, observable_name, units='' ):
     # compute the best binning for each histogram 
     observable_binnings = {} # list of binnings [seed][pop][bins]
@@ -188,7 +192,8 @@ def compute_data_dist( observable, observable_name, units='' ):
             observable_stats[cseed][pop] = stats
 
     # save statistics as json file
-    json.dump(observable_stats, open(sim_dict['data_path'] + f'{observable_name}_stats.json', 'w'), indent=4)
+    helpers.dict2json( observable_stats, sim_dict['data_path'] + f'{observable_name}_stats.json' )
+    #json.dump(observable_stats, open(sim_dict['data_path'] + f'{observable_name}_stats.json', 'w'), indent=4)
 
     return observable_hist_mat, observable_best_bins, observable_stats
 
@@ -269,8 +274,6 @@ def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_be
         
         ax_ks.set_xlim( 0, np.max( ks_values ) )
 
-        #ax_hist.set_title( pop )
-        #ax_ks.set_title( pop )
         if cpop // 2 == 3:
             ax_hist.set_xlabel( f'{ x_label }' )
             ax_ks.set_xlabel( r'KS-distance' )
@@ -285,14 +288,15 @@ def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_be
             ax_hist.set_xlim( x_min_hist, 0.1 )
         else:
             ax_hist.set_xlim( 0, x_max_hist )
-    plt.tight_layout()
-    fig_hist.subplots_adjust( bottom=0.12 )
-    fig_ks.subplots_adjust( bottom=0.12 )
-    fig_hist.savefig( f'{data_path}{observable_name}_distributions.pdf' )
-    fig_ks.savefig( f'{data_path}{observable_name}_KS_distances.pdf' )
+
+    fig_hist.savefig(f'{data_path}{observable_name}_distributions.pdf',
+                 bbox_inches="tight", pad_inches=0.02)
+    fig_ks.savefig(f'{data_path}{observable_name}_KS_distances.pdf',
+               bbox_inches="tight", pad_inches=0.02)
+'''
 
 def main():
-    cc_binsize = 2.
+    #cc_binsize = 2.
 
     rates = analyze_single_neuron_stats( 'rates', helpers.time_averaged_single_neuron_firing_rates )
     spike_cvs = analyze_single_neuron_stats( 'spike_cvs', helpers.single_neuron_isi_cvs )
@@ -302,13 +306,13 @@ def main():
     spike_cvs_ks_distances = compute_ks_distances( spike_cvs, 'spike_cvs' )
     spike_ccs_ks_distances = compute_ks_distances( spike_ccs, 'spike_ccs' )
 
-    rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( rates, 'rate', '1/s' )
-    spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( spike_cvs, 'spike_cvs' )
-    spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( spike_ccs, 'spike_ccs' )
+    #rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( rates, 'rate', '1/s' )
+    #spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( spike_cvs, 'spike_cvs' )
+    #spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( spike_ccs, 'spike_ccs' )
 
-    plot_data_dists( 'rate', r'time averaged single neuron firing rate (s$^{-1}$)', rate_hist_mat, rate_best_bins, rate_ks_distances )
-    plot_data_dists( 'spike_cvs', 'spike train irregularity (ISI CV)', spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_ks_distances )
-    plot_data_dists( 'spike_ccs', f'spike train correlation coefficient (bin size {cc_binsize})', spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances )
+    #plot_data_dists( 'rate', r'time averaged single neuron firing rate (s$^{-1}$)', rate_hist_mat, rate_best_bins, rate_ks_distances )
+    #plot_data_dists( 'spike_cvs', 'spike train irregularity (ISI CV)', spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_ks_distances )
+    #plot_data_dists( 'spike_ccs', f'spike train correlation coefficient (bin size {cc_binsize})', spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances )
 
     ## current memory consumption of the python process (in MB)
     import psutil
