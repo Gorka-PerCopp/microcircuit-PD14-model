@@ -66,7 +66,10 @@ net_dict["K_scaling"] = scaling_factor
 
 ## set pre-simulation time to 0 and desired simulation time
 sim_dict["t_presim"] = 500.0
-sim_dict["t_sim"] = 1.0e+4 # simulate for 10.0s
+sim_dict["t_sim"] = analysis_dict["t_sim"] # simulate for 10.0s
+
+## set number of local number of threads
+sim_dict["local_num_threads"] = 64
 
 ## set path for storing spike data and figures
 #sim_dict['data_path'] = 'data_scale_%.2f/' % scaling_factor
