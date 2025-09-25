@@ -38,6 +38,9 @@ from microcircuit.network_params import default_net_dict as net_dict
 from microcircuit.sim_params import default_sim_dict as sim_dict
 from microcircuit.stimulus_params import default_stim_dict as stim_dict
 
+## import analysis parameters
+from analysis_params import default_analysis_dict as analysis_dict
+
 from pathlib import Path
 from argparse import ArgumentParser
 
@@ -57,7 +60,7 @@ sim_dict.update(
 #####################
 
 ## set network scale
-scaling_factor = 1
+scaling_factor = analysis_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
 

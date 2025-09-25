@@ -44,8 +44,6 @@ from analysis_params import default_analysis_dict as analysis_dict
 
 #####################
 populations = net_dict['populations'] # list of populations
-#t_min = 500.0 # in ms
-#seed = 12345 # seed for reproducibility
 #####################
 
 ## set network scale
@@ -53,19 +51,12 @@ scaling_factor = analysis_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
 
-random.seed( analysis_dict['cc_seed'] )  # set seed for reproducibility
+random.seed( analysis_dict['seed_subsampling'] )  # set seed for reproducibility
 
 ## set path for storing spike data and figures
 ### TODO revise data path
 #sim_dict['data_path'] = '../examples/data_scale_%.2f/' % scaling_factor
-seeds = analysis_dict['benchmark_seeds'] # list of seeds
-
-'''
-TODOs:
-1. Rate distributions
-2. CV distributions
-3. CC distributions
-'''
+seeds = analysis_dict['RNG_seeds'] # list of seeds
 
 ########################################################################################################################
 #                                   Define auxiliary functions to analyze and plot data                                #
@@ -90,8 +81,6 @@ def analyze_single_neuron_stats(observable_name, func):
     # store observable as json file
     helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )
 
-    #json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
-
     return observable
 
 def analyze_pairwise_stats( observable_name, func ):
@@ -113,13 +102,12 @@ def analyze_pairwise_stats( observable_name, func ):
             spikes = helpers.load_spike_data( data_path, label )
 
             # Get random indices without replacement
-            selected_nodes = random.sample( pop_nodes, analysis_dict['k'] )
+            selected_nodes = random.sample( pop_nodes, analysis_dict['subsample_size'] )
 
-            observable[cseed][pop] = list( func( spikes, selected_nodes, recording_interval, analysis_dict['cc_binsize'] ) )
+            observable[cseed][pop] = list( func( spikes, selected_nodes, recording_interval, analysis_dict['binsize'] ) )
 
     # store pairwise spike count correlations as json file
     helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )
-    #json.dump( observable, open( sim_dict['data_path'] + f'{observable_name}.json', 'w' ), indent=4 )
 
     return observable
 
@@ -146,154 +134,8 @@ def compute_ks_distances( observable, observable_name ):
 
     # save ks distances as json file
     helpers.dict2json( observable_ks_distances, sim_dict['data_path'] + f'{observable_name}_ks_distances.json' )
-    #json.dump( observable_ks_distances, open( sim_dict['data_path'] + f'{observable_name}_ks_distances.json', 'w'), indent=4 )
 
     return observable_ks_distances
-
-'''
-def compute_data_dist( observable, observable_name, units='' ):
-    # compute the best binning for each histogram 
-    observable_binnings = {} # list of binnings [seed][pop][bins]
-    for cseed, seed in enumerate( seeds ):
-        # calculate histogram for each population
-        for cpop, pop in enumerate( populations ):
-            _, bins, _ = helpers.data_distribution( np.array( observable[cseed][pop] ), pop, f'{units}' )
-            if cpop not in observable_binnings:
-                observable_binnings[cpop] = []
-            observable_binnings[cpop].append( bins )
-
-    observable_best_bins = {}
-    for cpop, binning in observable_binnings.items():
-        max_bins = sorted( binning, key=lambda x: len(x), reverse=True )[0]  # take the binning with the most bins
-
-        max_range = np.max( max_bins ).tolist()
-        min_range = np.min( max_bins ).tolist()
-
-        width_diff = np.diff( max_bins )
-        min_width = np.min( width_diff ).tolist() if len( width_diff ) > 0 else 0 
-        observable_best_bins[cpop] = (min_range, max_range, min_width, np.arange( min_range, max_range + min_width, min_width ).tolist())
-
-    # calculate histogram for each seed and each population (data_distribution(...))
-    observable_hists = [] # list of histograms [seed][pop][histogram]
-    observable_hist_mat = {}
-    observable_stats = {} # list of statistics [seed][pop][stats] (mean, std, etc.)
-    for cseed, seed in enumerate( seeds ):
-        observable_stats[cseed] = {}
-        observable_hists.append([])
-        for cpop, pop in enumerate( populations ):
-            observable_stats[cseed][pop] = {}
-
-            observable_pop = np.array( observable[cseed][pop] )
-            observable_hist, bins, stats = helpers.data_distribution( observable_pop, pop, f'{units}', np.array( observable_best_bins[cpop][3] ) )
-            observable_hists[cseed].append( observable_hist.tolist() )
-            if not cpop in observable_hist_mat:
-                observable_hist_mat[cpop] = np.zeros( ( len( seeds ), len( observable_hist ) ) )
-            observable_hist_mat[cpop][cseed] = observable_hist / stats['sample_size']
-            observable_stats[cseed][pop] = stats
-
-    # save statistics as json file
-    helpers.dict2json( observable_stats, sim_dict['data_path'] + f'{observable_name}_stats.json' )
-    #json.dump(observable_stats, open(sim_dict['data_path'] + f'{observable_name}_stats.json', 'w'), indent=4)
-
-    return observable_hist_mat, observable_best_bins, observable_stats
-
-def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_best_bins, observable_ks_distances):
-
-    from matplotlib import rcParams
-    rcParams['figure.figsize']    = (7.5,7)
-    rcParams['figure.dpi']        = 300
-    rcParams['font.family']       = 'sans-serif'
-    rcParams['font.size']         = 8
-    rcParams['legend.fontsize']   = 8
-    rcParams['axes.titlesize']    = 10
-    rcParams['axes.labelsize']    = 8
-    rcParams['ytick.labelsize']   = 8
-    rcParams['xtick.labelsize']   = 8
-    rcParams['ytick.major.size']  = 0   ## remove y ticks      
-    rcParams['text.usetex']       = False 
-    rcParams['legend.framealpha'] = 1.0
-    rcParams['legend.edgecolor']  = 'k'
-    data_path = sim_dict['data_path']
-
-    x_max_hist = 0
-    x_min_hist = 0
-    for cpop, pop in enumerate( populations ):
-        bin_edges = observable_best_bins[cpop][3]
-        x_max_hist = max( x_max_hist, np.max( bin_edges ) )
-        x_min_hist = min( x_min_hist, np.min( bin_edges ) )
-
-    # plot of histograms for all populations
-    fig_hist, axes_hist = plt.subplots( 4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.0, 'wspace': 0.0} )
-
-    # plot of distributions of KS -distances
-    fig_ks, axes_ks = plt.subplots( 4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.0, 'wspace': 0.0} )
-
-    for cpop, pop in enumerate( populations ):
-        ax_hist = axes_hist[cpop // 2, cpop % 2]     # axes for each population
-        ax_ks = axes_ks[cpop // 2, cpop % 2]
-
-        bin_edges = observable_best_bins[cpop][3]
-        bin_centers = bin_edges[:-1]
-
-        pop_rel_hists = observable_hist_mat[cpop]
-
-        # calculate population mean and std histograms across seeds
-        pop_mean_hist = np.mean( pop_rel_hists, axis=0 )
-        pop_std_hist  = np.std( pop_rel_hists, axis=0 )
-
-        n_seeds = len( seeds )
-        grayscale = np.linspace( 0.2, 0.8, n_seeds )
-        colors = [(g, g, g) for g in grayscale]
-
-        for cseed in range( n_seeds ):
-            ax_hist.plot( bin_centers, pop_rel_hists[cseed], '-', color=colors[-1], label=f'Seed {cseed}' )
-
-        ax_hist.plot( bin_centers, pop_mean_hist, 'k--', label='Mean' )
-        ax_hist.fill_between( bin_centers, pop_mean_hist - pop_std_hist, pop_mean_hist + pop_std_hist, alpha=0.3 )
-        
-        ks_values = observable_ks_distances[pop]["list"]
-        mean = std = None
-        if len( ks_values ) > 0:
-            mean = np.mean( ks_values )
-            std = np.std( ks_values )
-
-        textbox = f'{pop}'
-        if mean is not None:
-            textbox += f'\nmean KS-distance: {mean:.2f}'
-        
-            ax_ks.hist( ks_values, bins=n_seeds, color='gray', alpha=0.5 )
-            ax_ks.axvline( mean, color='red', linestyle='--', label='Mean KS-distance' )
-            ax_ks.axvline( mean + std, color='blue', linestyle='--', label='Mean + Std' )
-            ax_ks.axvline( mean - std, color='blue', linestyle='--', label='Mean - Std' )
-            ax_ks.set_xticks( np.arange( 0.05, np.max( ks_values ), 0.05 ) )
-
-        ax_hist.text( 0.95, 0.95, textbox, transform=ax_hist.transAxes, fontsize=8,
-                verticalalignment='top', horizontalalignment='right' )
-        ax_ks.text( 0.95, 0.95, f'{pop}', transform=ax_ks.transAxes, fontsize=8,
-                verticalalignment='top', horizontalalignment='right' )
-        
-        ax_ks.set_xlim( 0, np.max( ks_values ) )
-
-        if cpop // 2 == 3:
-            ax_hist.set_xlabel( f'{ x_label }' )
-            ax_ks.set_xlabel( r'KS-distance' )
-            
-        if cpop % 2 == 0:
-            ax_hist.set_ylabel( r'rel. freq.' )
-            ax_hist.set_yticks( [] )
-            ax_ks.set_ylabel( r'freq.' )
-            ax_ks.set_yticks( [] )
-        
-        if observable_name == 'spike_ccs':
-            ax_hist.set_xlim( x_min_hist, 0.1 )
-        else:
-            ax_hist.set_xlim( 0, x_max_hist )
-
-    fig_hist.savefig(f'{data_path}{observable_name}_distributions.pdf',
-                 bbox_inches="tight", pad_inches=0.02)
-    fig_ks.savefig(f'{data_path}{observable_name}_KS_distances.pdf',
-               bbox_inches="tight", pad_inches=0.02)
-'''
 
 def main():
     #cc_binsize = 2.
@@ -302,17 +144,9 @@ def main():
     spike_cvs = analyze_single_neuron_stats( 'spike_cvs', helpers.single_neuron_isi_cvs )
     spike_ccs = analyze_pairwise_stats( 'spike_ccs', helpers.pairwise_spike_count_correlations )
 
-    rate_ks_distances = compute_ks_distances( rates, 'rate' )
-    spike_cvs_ks_distances = compute_ks_distances( spike_cvs, 'spike_cvs' )
-    spike_ccs_ks_distances = compute_ks_distances( spike_ccs, 'spike_ccs' )
-
-    #rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( rates, 'rate', '1/s' )
-    #spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( spike_cvs, 'spike_cvs' )
-    #spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( spike_ccs, 'spike_ccs' )
-
-    #plot_data_dists( 'rate', r'time averaged single neuron firing rate (s$^{-1}$)', rate_hist_mat, rate_best_bins, rate_ks_distances )
-    #plot_data_dists( 'spike_cvs', 'spike train irregularity (ISI CV)', spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_ks_distances )
-    #plot_data_dists( 'spike_ccs', f'spike train correlation coefficient (bin size {cc_binsize})', spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances )
+    compute_ks_distances( rates, 'rate' )
+    compute_ks_distances( spike_cvs, 'spike_cvs' )
+    compute_ks_distances( spike_ccs, 'spike_ccs' )
 
     ## current memory consumption of the python process (in MB)
     import psutil
