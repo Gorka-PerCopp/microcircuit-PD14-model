@@ -58,6 +58,8 @@ random.seed( analysis_dict['seed_subsampling'] )  # set seed for reproducibility
 #sim_dict['data_path'] = '../examples/data_scale_%.2f/' % scaling_factor
 seeds = analysis_dict['RNG_seeds'] # list of seeds
 
+sim_dict['data_path'] = 'data_T' + str( int( analysis_dict['t_sim'] * 1.0e-3 ) ) + 's/'
+
 ########################################################################################################################
 #                                   Define auxiliary functions to analyze and plot data                                #
 ########################################################################################################################

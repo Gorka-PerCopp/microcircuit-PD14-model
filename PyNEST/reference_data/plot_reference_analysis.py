@@ -50,7 +50,7 @@ populations = net_dict['populations'] # list of populations
 scaling_factor = analysis_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
-data_path = sim_dict['data_path']
+sim_dict['data_path'] = 'data_T' + str( int( analysis_dict['t_sim'] * 1.0e-3 ) ) + 's/'
 
 ## set path for storing spike data and figures
 ### TODO revise data path
@@ -208,6 +208,7 @@ def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_be
     
 
 def main():
+    data_path = sim_dict['data_path']
 
     # Read the data in
     rates = helpers.json2dict( f'{data_path}rates.json' )
