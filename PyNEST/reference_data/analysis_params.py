@@ -29,7 +29,7 @@ default_analysis_dict = {
     # RNG seeds
     'RNG_seeds': ['12345' + str(i) for i in range(0, 10)], # RNG_seeds
     # simulation time for analysis
-    't_sim': 1.0e+3,
+    't_sim': 1.0e+4,
     # start of analysis time interval in ms
     't_min': 500.0,
     # seed for neuron subsampling reroducibility (for CC anlysis)
