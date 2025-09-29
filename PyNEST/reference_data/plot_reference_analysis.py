@@ -40,22 +40,22 @@ from microcircuit.sim_params import default_sim_dict as sim_dict
 from microcircuit.stimulus_params import default_stim_dict as stim_dict
 
 ## import analysis parameters
-from analysis_params import default_analysis_dict as analysis_dict
+from params import params as ref_dict
 
 #####################
 populations = net_dict['populations'] # list of populations
 #####################
 
 ## set network scale
-scaling_factor = analysis_dict['scaling_factor']
+scaling_factor = ref_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
-sim_dict['data_path'] = 'data_T' + str( int( analysis_dict['t_sim'] * 1.0e-3 ) ) + 's/'
+sim_dict['data_path'] = 'data_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) ) + 's/'
 
 ## set path for storing spike data and figures
 ### TODO revise data path
 #sim_dict['data_path'] = '../examples/data_scale_%.2f/' % scaling_factor
-seeds = analysis_dict['RNG_seeds'] # list of seeds
+seeds = ref_dict['RNG_seeds'] # list of seeds
 
 ########################################################################################################################
 #                                   Define auxiliary functions to plot data                                            #
@@ -111,7 +111,7 @@ def compute_data_dist( observable, observable_name, units='' ):
 def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_best_bins, observable_ks_distances):
 
     from matplotlib import rcParams
-    rcParams['figure.figsize']    = (analysis_dict['max_fig_width'] / 3., (4. / 9.) * analysis_dict['max_fig_width'])#(7.5,7)
+    rcParams['figure.figsize']    = (ref_dict['max_fig_width'] / 3., (4. / 9.) * ref_dict['max_fig_width'])#(7.5,7)
     rcParams['figure.dpi']        = 300
     rcParams['font.family']       = 'sans-serif'
     rcParams['font.size']         = 8
@@ -194,7 +194,7 @@ def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_be
             ax_ks.set_yticks( [] )
         
         if observable_name == 'spike_ccs':
-            ax_hist.set_xlim( analysis_dict['cc_min'], analysis_dict['cc_max'] )
+            ax_hist.set_xlim( ref_dict['cc_min'], ref_dict['cc_max'] )
         else:
             ax_hist.set_xlim( 0, x_max_hist )
             ax_hist.set_xticks([0, x_max_hist/2], [r'$0$', r'$%.0f$' % (x_max_hist/2)] )
@@ -227,7 +227,7 @@ def main():
     # Plot distributions and KS distances
     plot_data_dists( 'rate', r'\begin{center} time averaged single neuron\\firing rate (s$^{-1}$) \end{center}', rate_hist_mat, rate_best_bins, rate_ks_distances )
     plot_data_dists( 'spike_cvs', r'spike irregularity (ISI CV)', spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_ks_distances )
-    plot_data_dists( 'spike_ccs', r'\begin{center} spike correlation coefficient\\(bin size $%.1f$ ms) \end{center}' % analysis_dict['binsize'], spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances )
+    plot_data_dists( 'spike_ccs', r'\begin{center} spike correlation coefficient\\(bin size $%.1f$ ms) \end{center}' % ref_dict['binsize'], spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances )
 
     ## current memory consumption of the python process (in MB)
     import psutil

@@ -39,7 +39,7 @@ from microcircuit.sim_params import default_sim_dict as sim_dict
 from microcircuit.stimulus_params import default_stim_dict as stim_dict
 
 ## import analysis parameters
-from analysis_params import default_analysis_dict as analysis_dict
+from params import params as ref_dict
 
 from pathlib import Path
 from argparse import ArgumentParser
@@ -60,16 +60,16 @@ sim_dict.update(
 #####################
 
 ## set network scale
-scaling_factor = analysis_dict['scaling_factor']
+scaling_factor = ref_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
 
 ## set pre-simulation time to 0 and desired simulation time
-sim_dict["t_presim"] = 500.0
-sim_dict["t_sim"] = analysis_dict["t_sim"] # simulate for 10.0s
+sim_dict["t_presim"] = ref_dict["t_presim"]
+sim_dict["t_sim"] = ref_dict["t_sim"] # simulate for 10.0s
 
 ## set number of local number of threads
-sim_dict["local_num_threads"] = 64
+sim_dict["local_num_threads"] = ref_dict['local_num_threads']
 
 ## set path for storing spike data and figures
 #sim_dict['data_path'] = 'data_scale_%.2f/' % scaling_factor
