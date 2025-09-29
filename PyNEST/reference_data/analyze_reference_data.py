@@ -40,25 +40,25 @@ from microcircuit.sim_params import default_sim_dict as sim_dict
 from microcircuit.stimulus_params import default_stim_dict as stim_dict
 
 ## import analysis parameters
-from analysis_params import default_analysis_dict as analysis_dict
+from params import params as ref_dict
 
 #####################
 populations = net_dict['populations'] # list of populations
 #####################
 
 ## set network scale
-scaling_factor = analysis_dict['scaling_factor']
+scaling_factor = ref_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
 
-random.seed( analysis_dict['seed_subsampling'] )  # set seed for reproducibility
+random.seed( ref_dict['seed_subsampling'] )  # set seed for reproducibility
 
 ## set path for storing spike data and figures
 ### TODO revise data path
 #sim_dict['data_path'] = '../examples/data_scale_%.2f/' % scaling_factor
-seeds = analysis_dict['RNG_seeds'] # list of seeds
+seeds = ref_dict['RNG_seeds'] # list of seeds
 
-sim_dict['data_path'] = 'data_T' + str( int( analysis_dict['t_sim'] * 1.0e-3 ) ) + 's/'
+sim_dict['data_path'] = 'data_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) ) + 's/'
 
 ########################################################################################################################
 #                                   Define auxiliary functions to analyze and plot data                                #
@@ -66,7 +66,7 @@ sim_dict['data_path'] = 'data_T' + str( int( analysis_dict['t_sim'] * 1.0e-3 ) )
 
 def analyze_single_neuron_stats(observable_name, func):
     observable = {} # list of single neuron observable [seed][pop][neuron]
-    recording_interval = ( max( analysis_dict['t_min'], sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
+    recording_interval = ( max( ref_dict['t_min'], ref_dict['t_presim'] ), ref_dict['t_presim'] + ref_dict['t_sim'] )
 
     for cseed, seed in enumerate( seeds ):
         data_path = sim_dict['data_path'] + 'seed-%s/' % seed
@@ -87,7 +87,7 @@ def analyze_single_neuron_stats(observable_name, func):
 
 def analyze_pairwise_stats( observable_name, func ):
 
-    recording_interval = ( max ( analysis_dict['t_min'], sim_dict['t_presim'] ), sim_dict['t_presim'] + sim_dict['t_sim'] )
+    recording_interval = ( max ( ref_dict['t_min'], ref_dict['t_presim'] ), ref_dict['t_presim'] + ref_dict['t_sim'] )
 
     #cc_binsize = 2. # in ms
     observable = {}  # list of pairwise spike count correlations [seed][pop][correlation]
@@ -104,9 +104,9 @@ def analyze_pairwise_stats( observable_name, func ):
             spikes = helpers.load_spike_data( data_path, label )
 
             # Get random indices without replacement
-            selected_nodes = random.sample( pop_nodes, analysis_dict['subsample_size'] )
+            selected_nodes = random.sample( pop_nodes, ref_dict['subsample_size'] )
 
-            observable[cseed][pop] = list( func( spikes, selected_nodes, recording_interval, analysis_dict['binsize'] ) )
+            observable[cseed][pop] = list( func( spikes, selected_nodes, recording_interval, ref_dict['binsize'] ) )
 
     # store pairwise spike count correlations as json file
     helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )

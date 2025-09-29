@@ -22,14 +22,27 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 #####################
+'''
+Parameters for generation and analysis of reference data.
+'''
 
-default_analysis_dict = {
+params = {
+    #########################
+    # Adapted model and simulation parameters
+    #########################
     # scaling factor of the network
     'scaling_factor': 1.0,
     # RNG seeds
     'RNG_seeds': ['12345' + str(i) for i in range(0, 10)], # RNG_seeds
+    # pre simulation time for network stabilization
+    't_presim': 500.0,
     # simulation time for analysis
     't_sim': 1.0e+4,
+    # local number of threads
+    'local_num_threads': 64,
+    #########################
+    # analysis parameters
+    #########################
     # start of analysis time interval in ms
     't_min': 500.0,
     # seed for neuron subsampling reroducibility (for CC anlysis)
