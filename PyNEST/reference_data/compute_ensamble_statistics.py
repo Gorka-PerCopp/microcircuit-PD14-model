@@ -104,7 +104,7 @@ def compute_ks_distances( observable, observable_name ):
     return observable_ks_distances
 
 def main():
-    rates = concatenate_data( 'rate' )
+    rates = concatenate_data( 'rates' )
     spike_cvs = concatenate_data( 'spike_cvs' )
     spike_ccs = concatenate_data( 'spike_ccs' )
     
