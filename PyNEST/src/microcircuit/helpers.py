@@ -407,7 +407,7 @@ def boxplot(path, populations):
     plt.clf()
     
     bp = plt.boxplot(
-        rates_per_neuron_rev, 0, "rs", 0, medianprops=medianprops, meanprops=meanprops, meanline=True, showmeans=True, vert=False #orientation='horizontal'
+        rates_per_neuron_rev, 0, "rs", 0, medianprops=medianprops, meanprops=meanprops, meanline=True, showmeans=True, vert=False
     )
     plt.setp(bp["boxes"], color="black")
     plt.setp(bp["whiskers"], color="black")
