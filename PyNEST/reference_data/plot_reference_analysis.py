@@ -63,15 +63,18 @@ seeds = ref_dict['RNG_seeds'] # list of seeds
 
 def compute_data_dist( observable, observable_name, units='' ):
     # compute the best binning for each histogram 
-    observable_binnings = {} # list of binnings [seed][pop][bins]
+    observable_binnings = {} # list of binnings [pop][bins]
+    # binsizes = np.zeros( ( len( seeds ), len( populations ) ) )
     for cseed, seed in enumerate( seeds ):
         cseed = str( cseed )
         # calculate histogram for each population
         for cpop, pop in enumerate( populations ):
             _, bins, _ = helpers.data_distribution( np.array( observable[cseed][pop] ), pop, f'{units}' )
+            # binsizes[cseed][cpop] = np.diff ( bins )[0]
             if cpop not in observable_binnings:
                 observable_binnings[cpop] = []
             observable_binnings[cpop].append( bins )
+            #
 
     observable_best_bins = {}
     for cpop, binning in observable_binnings.items():
