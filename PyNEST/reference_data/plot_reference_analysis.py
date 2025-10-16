@@ -61,7 +61,7 @@ seeds = ref_dict['RNG_seeds'] # list of seeds
 #                                   Define auxiliary functions to plot data                                            #
 ########################################################################################################################
 
-def compute_data_dist( observable, observable_name, units='' ):
+def compute_data_dist( observable, observable_name, observable_limits=(0,0), units='' ):
     # compute the best binning for each histogram 
     observable_binnings = {} # list of binnings [pop][bins]
     # binsizes = np.zeros( ( len( seeds ), len( populations ) ) )
@@ -80,8 +80,10 @@ def compute_data_dist( observable, observable_name, units='' ):
     for cpop, binning in observable_binnings.items():
         max_bins = sorted( binning, key=lambda x: len(x), reverse=True )[0]  # take the binning with the most bins
 
-        max_range = np.max( max_bins ).tolist()
-        min_range = np.min( max_bins ).tolist()
+        #max_range = np.max( max_bins ).tolist()
+        #min_range = np.min( max_bins ).tolist()
+        max_range = observable_limits[1] if observable_limits[1] > 0 else np.max( max_bins ).tolist()
+        min_range = observable_limits[0] if observable_limits[0] > 0 else np.min( max_bins ).tolist()
 
         width_diff = np.diff( max_bins )
         min_width = np.min( width_diff ).tolist() if len( width_diff ) > 0 else 0 
@@ -197,7 +199,7 @@ def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_be
             ax_ks.set_yticks( [] )
         
         if observable_name == 'spike_ccs':
-            ax_hist.set_xlim( ref_dict['cc_min'], ref_dict['cc_max'] )
+            ax_hist.set_xlim( ref_dict['cc_lim'][0], ref_dict['cc_lim'][1] )
         else:
             ax_hist.set_xlim( 0, x_max_hist )
             ax_hist.set_xticks([0, x_max_hist/2], [r'$0$', r'$%.0f$' % (x_max_hist/2)] )
@@ -223,9 +225,9 @@ def main():
     spike_ccs_ks_distances = helpers.json2dict( f'{data_path}spike_ccs_ks_distances.json' )
 
     # Compute distributions and statistics
-    rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( rates, 'rate', '1/s' )
-    spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( spike_cvs, 'spike_cvs' )
-    spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( spike_ccs, 'spike_ccs' )
+    rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( rates, 'rate', ref_dict['rate_lim'], '1/s' )
+    spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( spike_cvs, 'spike_cvs', ref_dict['cv_lim'] )
+    spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( spike_ccs, 'spike_ccs', ref_dict['cc_lim'] )
 
     # Plot distributions and KS distances
     plot_data_dists( 'rate', r'\begin{center} time averaged single neuron\\firing rate (s$^{-1}$) \end{center}', rate_hist_mat, rate_best_bins, rate_ks_distances )

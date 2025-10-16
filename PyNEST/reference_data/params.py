@@ -51,13 +51,10 @@ params = {
     'subsample_size': 250, # subsample_size
     # bin size for generation of spike-count signals (for CC analysis)
     'binsize': 2.0, # binsize
-    # minimal value for CC histogram
-    'cc_min': -0.015,
-    # 'cc_lim': [-0.015, 0.015],
-    # 'rate_lim': [0., 20.],
-    # 'cv_lim': [0., 1.5],
-    # maximal value for CC histogram
-    'cc_max': 0.015,
+    # limits for rate, CV, and CC histograms
+    'cc_lim': [-0.015, 0.015],
+    'rate_lim': [0., 20.],
+    'cv_lim': [0., 1.5],
     # maximal figure width in inches
     'max_fig_width': 7.5, # max_figure_width 
 }
