@@ -37,7 +37,7 @@ params = {
     # pre simulation time for network stabilization
     't_presim': 500.0,
     # simulation time for analysis
-    't_sim': 1.0e+4,
+    't_sim': 6.0e+5,
     # local number of threads
     'local_num_threads': 64,
     #########################
@@ -52,9 +52,12 @@ params = {
     # bin size for generation of spike-count signals (for CC analysis)
     'binsize': 2.0, # binsize
     # minimal value for CC histogram
-    'cc_min': -0.075,
+    'cc_min': -0.015,
+    # 'cc_lim': [-0.015, 0.015],
+    # 'rate_lim': [0., 20.],
+    # 'cv_lim': [0., 1.5],
     # maximal value for CC histogram
-    'cc_max': 0.1,
+    'cc_max': 0.015,
     # maximal figure width in inches
     'max_fig_width': 7.5, # max_figure_width 
 }
