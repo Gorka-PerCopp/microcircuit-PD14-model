@@ -34,9 +34,10 @@ params = {
     'scaling_factor': 1.0,
     # RNG seeds
     'RNG_seeds': ['12345' + str(i) for i in range(0, 10)], # RNG_seeds
-    # pre simulation time for network stabilization
+    # pre simulation time for network stabilization in ms
     't_presim': 500.0,
-    # simulation time for analysis
+    # simulation time for analysis in ms
+    #'t_sim': 1.0e+4,
     't_sim': 6.0e+5,
     # local number of threads
     'local_num_threads': 64,
