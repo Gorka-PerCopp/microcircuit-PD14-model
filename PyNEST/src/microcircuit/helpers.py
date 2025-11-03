@@ -35,6 +35,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
 import json
+import nest
 
 if "DISPLAY" not in os.environ:
     import matplotlib
@@ -406,7 +407,7 @@ def boxplot(path, populations):
     plt.clf()
     
     bp = plt.boxplot(
-        rates_per_neuron_rev, 0, "rs", 0, medianprops=medianprops, meanprops=meanprops, meanline=True, showmeans=True, orientation='horizontal'
+        rates_per_neuron_rev, notch=False, sym="rs", whis=0, medianprops=medianprops, meanprops=meanprops, meanline=True, showmeans=True, vert=False
     )
     plt.setp(bp["boxes"], color="black")
     plt.setp(bp["whiskers"], color="black")
@@ -637,6 +638,11 @@ def load_spike_data(path, label, time_interval = None, pop = None, skip_rows = 3
 
         spike_dict['senders'] = spikes[:,0]
         spike_dict['times'] = spikes[:,1]
+
+        ind = np.argsort(spike_dict['times'])
+
+        spike_dict['senders'] = spike_dict['senders'][ind]
+        spike_dict['times'] = spike_dict['times'][ind]
     
     return spike_dict
 
@@ -755,7 +761,7 @@ def time_averaged_single_neuron_firing_rates(spikes, pop, interval):
     D=(interval[1]-interval[0])
     for n in pop:        
         rates += [ len(np.where(spikes['senders'] == n)[0]) * 1./D * 1e3]
-    return np.array(rates)
+    return rates
 
 #################################################
 def single_neuron_isi_cvs(spikes, pop, interval):    
@@ -791,10 +797,12 @@ def single_neuron_isi_cvs(spikes, pop, interval):
     cvs = []
     for n in pop:
         ind = np.where(spikes['senders'] == n)
-        spike_times = spikes['times'][ind]
+        spike_times = np.sort(spikes['times'][ind])
         if len(spike_times) > 2:            
             intervals = np.diff(spike_times)
-            cvs += [np.std(intervals)/np.mean(intervals)]
+            cv = np.std(intervals)/np.mean(intervals)
+            assert( all( cv != err for err in ( np.nan, np.inf ) ) ), ( cv, n, intervals, spike_times )
+            cvs.append( cv )
 
     return np.array(cvs)
 
@@ -885,9 +893,9 @@ def pairwise_spike_count_correlations(spikes, pop, interval, binsize):
     for cn, n in enumerate(pop):
         ccs+=list(cc_matrix[cn,cn+1:])
 
-    ccs=np.array(ccs)
-    ind = np.where(np.isnan(ccs))
-    ccs = np.delete(ccs,ind)
+    #ccs=np.array(ccs)
+    #ind = np.where(np.isnan(ccs))
+    #ccs = np.delete(ccs,ind)
 
     return np.array(ccs)
 
@@ -895,6 +903,8 @@ def pairwise_spike_count_correlations(spikes, pop, interval, binsize):
 def data_distribution(data, label, unit='', hist_bin=None):
     '''
     Calculates distribution (histogram) of a given data array, and basic statistics.
+
+    If data is empty or contains only NaNs, the resulting histogram is set to zero for all bins and a warning is raised.
 
     Parameters:
     -----------
@@ -909,7 +919,7 @@ def data_distribution(data, label, unit='', hist_bin=None):
 
     hist_bin   None or float
                Bin width for calculation of histogram.
-               None (default): Use Freedman-Diaconis estimator.
+               None (default): Use Doane estimator.
 
     Returns:
     --------
@@ -926,6 +936,22 @@ def data_distribution(data, label, unit='', hist_bin=None):
     '''
 
     assert(len(data)>0)
+
+    nans = np.isnan(data)
+    if all(nans):
+        print('WARNING: Data contains only NaNs. Histogram is set to zero for all bins.')
+        #return np.zeros(len(data)), np.zeros(len(data)), {
+            #'sample_size': 0,
+            #'mean': np.nan,
+            #'median': np.nan,
+            #'min': np.nan,
+            #'max': np.nan,
+            #'sd': np.nan
+        #}
+        return None, None, None
+    else:
+        print('WARNING: Data contains %d NaNs. These are ignored in the statistics.' % sum(nans))
+        data = np.delete(data,np.where(nans))
 
     stat = {}
 
@@ -947,17 +973,20 @@ def data_distribution(data, label, unit='', hist_bin=None):
     print('\tmax         = %.3f %s' % (stat['max']         , unit ))
 
     ## histogram
-    if hist_bin == None:
+    if hist_bin is None:
         print()
-        print('\tUsing Freedman-Diaconis estimator for histogram binsize.')
+        print('\tUsing Doane estimator for histogram binsize.')
         print()
-        bins = 'fd'  ## Freedman Diaconis estimator
+        bins = 'doane'  ## Doane estimator
     else:
-        if hist_bin>0:
-            bins = np.arange(stat['min'] - hist_bin, stat['max'] + 1.1 * hist_bin, hist_bin)
-        else:
-            bins = np.array([0,stat['min'],2*stat['min']])
-            
+        if isinstance(hist_bin, (int, float)):
+            if hist_bin>0:
+                bins = np.arange(stat['min'] - hist_bin, stat['max'] + 1.1 * hist_bin, hist_bin)
+            else:
+                bins = np.array([0,stat['min'],2*stat['min']])
+        elif isinstance(hist_bin, (list, np.ndarray)):
+            bins = hist_bin
+    
     data_hist, bins = np.histogram(data,bins=bins)    
     
     return data_hist, bins[:-1], stat
