@@ -3,7 +3,7 @@
 sim_time=$(python3 -c "import sys; sys.path.append('../'); from params import params as ref_dict; print(int(ref_dict['t_sim'] * 1.0e-3))")
 range=$(python3 -c "import sys; sys.path.append('../'); from params import params as ref_dict; print(' '.join(ref_dict['RNG_seeds']))")
 
-results="../data_T${sim_time}s"
+results="../data/data_T${sim_time}s"
 results_log="../log_T${sim_time}s"
 
 for seed in $range; do
