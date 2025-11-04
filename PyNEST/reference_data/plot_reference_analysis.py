@@ -50,7 +50,7 @@ populations = net_dict['populations'] # list of populations
 scaling_factor = ref_dict['scaling_factor']
 net_dict["N_scaling"] = scaling_factor
 net_dict["K_scaling"] = scaling_factor
-sim_dict['data_path'] = 'data_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) ) + 's/'
+sim_dict['data_path'] = 'data/data_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) ) + 's/'
 
 ## set path for storing spike data and figures
 ### TODO revise data path
