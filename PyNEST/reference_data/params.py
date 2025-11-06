@@ -56,6 +56,10 @@ params = {
     'cc_lim': [-0.015, 0.015],
     'rate_lim': [0., 20.],
     'cv_lim': [0., 1.5],
+    # binsizes for histograms
+    'cc_binsize': 0.001,
+    'rate_binsize': 1.0,
+    'cv_binsize': 0.1,
     # maximal figure width in inches
     'max_fig_width': 7.5, # max_figure_width 
 }
