@@ -22,6 +22,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 #####################
+'''
+Compute and plot ensemble statistics across seeds from reference data generated with generate_reference_data.py.
+'''
+
 import time
 import nest
 import numpy as np
@@ -61,7 +65,32 @@ seeds = ref_dict['RNG_seeds'] # list of seeds
 #                                   Define auxiliary functions to plot data                                            #
 ########################################################################################################################
 
-def compute_data_dist( observable: dir, observable_name: str, observable_limits: tuple = (0, 0), units: str='', bin_size: float=None ):
+def compute_data_dist( observable: dict, observable_name: str, observable_limits: tuple[float, float] = (0, 0), units: str='', bin_size: float=None ) -> tuple[dict, dict, dict]:
+    '''
+    Compute histograms and statistics for given observable for each population across all seeds.
+    --------------------------------------------------------------------------------------------
+    Parameters:
+    - observable: dict
+        Dictionary containing the concatenated observable data over seeds for each population.
+    - observable_name: str
+        Name of the observable to analyze (e.g., 'rates', 'spike_cvs', 'spike_ccs').
+        Needs to match the filename used to store the data per seed in 'analyze_reference_data.py'.
+    - observable_limits: tuple[float, float]
+        Tuple specifying the (min, max) limits for the observable histograms.
+    - units: str
+        Units of the observable (for labeling purposes).
+    - bin_size: float
+        Bin size for the histograms. If None, the best bin size is computed from the data.
+    --------------------------------------------------------------------------------------------
+    Returns: (observable_hist_mat, observable_best_bins, observable_stats)
+    - observable_hist_mat: dict
+        Dictionary containing the histograms for each population across all seeds.
+    - observable_best_bins: dict
+        Dictionary containing the best binning for each population.
+    - observable_stats: dict
+        Dictionary containing the statistics for each population across all seeds.
+    '''
+
     # compute the best binning for each histogram
     if bin_size is None:
         binsizes = np.zeros( ( len( seeds ), len( populations ) ) )
@@ -69,24 +98,24 @@ def compute_data_dist( observable: dir, observable_name: str, observable_limits:
         pop_bin_max_vals = np.zeros( ( len( seeds ), len( populations ) ) )
         for cseed, seed in enumerate( seeds ):
             cseed_str = str( cseed )
-            # calculate histogram for each population
             for cpop, pop in enumerate( populations ):
-                _, bins, _ = helpers.data_distribution( np.array( observable[cseed_str][pop] ), pop, f'{units}' )
-                pop_bin_min_vals[cseed][cpop] = np.min( bins ).tolist()
-                pop_bin_max_vals[cseed][cpop] = np.max( bins ).tolist()
-                binsizes[cseed][cpop] = np.diff( bins )[0]
+                _, bins, _ = helpers.data_distribution( np.array( observable[cseed_str][pop] ), pop, f'{units}' ) # calculate histogram for each population across seeds
+                pop_bin_min_vals[cseed][cpop] = np.min( bins ).tolist() # store min bin value
+                pop_bin_max_vals[cseed][cpop] = np.max( bins ).tolist() # store max bin value
+                binsizes[cseed][cpop] = np.diff( bins )[0] # store all bin sizes
 
-        min_binsizes = np.min( binsizes, axis=0 )
-        min_bin_values = np.min( bin_min_vals, axis=0 )
-        max_bin_values = np.max( bin_max_vals, axis=0 )
+        min_binsizes = np.min( binsizes, axis=0 ) # get min bin size across seeds for each population
+        min_bin_values = np.min( bin_min_vals, axis=0 ) # get min bin value across seeds for each population
+        max_bin_values = np.max( bin_max_vals, axis=0 ) # get max bin value across seeds for each population
 
         observable_best_bins = {}
         for cpop, pop in enumerate( populations ):
-            min_range = observable_limits[0] if observable_limits[0] > 0 else min_bin_values[cpop].tolist()
-            max_range = observable_limits[1] if observable_limits[1] > 0 else max_bin_values[cpop].tolist()
-            min_width = min_binsizes[cpop].tolist()
-            observable_best_bins[cpop] = (min_range, max_range, min_width, np.arange( min_range, max_range + min_width, min_width ).tolist())
+            min_range = observable_limits[0] if observable_limits[0] > 0 else min_bin_values[cpop].tolist() # get min range (can either be given or from data)
+            max_range = observable_limits[1] if observable_limits[1] > 0 else max_bin_values[cpop].tolist() # get max range (can either be given or from data)
+            min_width = min_binsizes[cpop].tolist() # get min bin size
+            observable_best_bins[cpop] = (min_range, max_range, min_width, np.arange( min_range, max_range + min_width, min_width ).tolist()) # store best binning for each population (min, max, bin_size, bin_edges)
 
+    # If bin size is given, compute binning vectors accordingly
     else:
         bin_min_vals = np.zeros( ( len( seeds ), len( populations ) ) )
         bin_max_vals = np.zeros( ( len( seeds ), len( populations ) ) )
@@ -94,23 +123,23 @@ def compute_data_dist( observable: dir, observable_name: str, observable_limits:
             cseed_str = str( cseed )
             # calculate histogram for each population
             for cpop, pop in enumerate( populations ):
-                _, bins, _ = helpers.data_distribution( np.array( observable[cseed_str][pop] ), pop, f'{units}' )
-                bin_min_vals[cseed][cpop] = np.min( bins ).tolist()
-                bin_max_vals[cseed][cpop] = np.max( bins ).tolist()
+                _, bins, _ = helpers.data_distribution( np.array( observable[cseed_str][pop] ), pop, f'{units}' ) # calculate histogram for each population across seeds
+                bin_min_vals[cseed][cpop] = np.min( bins ).tolist() # store min bin value
+                bin_max_vals[cseed][cpop] = np.max( bins ).tolist() # store max bin value
         
-        min_bin_vals = np.min( bin_min_vals, axis=0 )
-        max_bin_vals = np.max( bin_max_vals, axis=0 )
+        min_bin_vals = np.min( bin_min_vals, axis=0 ) # get min bin values across seeds for each population
+        max_bin_vals = np.max( bin_max_vals, axis=0 ) # get max bin values across seeds for each population
 
-        min_range = observable_limits[0] if observable_limits[0] > 0 else min_bin_vals[cpop].tolist()
-        max_range = observable_limits[1] if observable_limits[1] > 0 else max_bin_vals[cpop].tolist()
-        min_width = bin_size
+        min_range = observable_limits[0] if observable_limits[0] > 0 else min_bin_vals[cpop].tolist() # get min range (can either be given or from data)
+        max_range = observable_limits[1] if observable_limits[1] > 0 else max_bin_vals[cpop].tolist() # get max range (can either be given or from data)
+        min_width = bin_size # use given bin size
         observable_best_bins = {}
         for cpop, pop in enumerate( populations ):
-            observable_best_bins[cpop] = (min_range, max_range, min_width, np.arange( min_range, max_range + min_width, min_width ).tolist())
+            observable_best_bins[cpop] = (min_range, max_range, min_width, np.arange( min_range, max_range + min_width, min_width ).tolist()) # store best binning for each population (min, max, bin_size, bin_edges)
         
     # calculate histogram for each seed and each population (data_distribution(...))
     observable_hists = [] # list of histograms [seed][pop][histogram]
-    observable_hist_mat = {}
+    observable_hist_mat = {} # matrix of histograms [pop][seed][histogram]
     observable_stats = {} # list of statistics [seed][pop][stats] (mean, std, etc.)
     for cseed, seed in enumerate( seeds ):
         cseed_str = str( cseed )
@@ -118,24 +147,40 @@ def compute_data_dist( observable: dir, observable_name: str, observable_limits:
         observable_hists.append([])
         for cpop, pop in enumerate( populations ):
             observable_stats[cseed][pop] = {}
-
-            observable_pop = np.array( observable[cseed_str][pop] )
-            observable_hist, bins, stats = helpers.data_distribution( observable_pop, pop, f'{units}', np.array( observable_best_bins[cpop][3] ) )
-            observable_hists[cseed].append( observable_hist.tolist() )
+            observable_pop = np.array( observable[cseed_str][pop] ) # get observable data for current seed and population
+            observable_hist, bins, stats = helpers.data_distribution( observable_pop, pop, f'{units}', np.array( observable_best_bins[cpop][3] ) ) # calculate histogram and statistics for each population across seeds
+            observable_hists[cseed].append( observable_hist.tolist() ) # store histogram
             if not cpop in observable_hist_mat:
-                observable_hist_mat[cpop] = np.zeros( ( len( seeds ), len( observable_hist ) ) )
-            observable_hist_mat[cpop][cseed] = observable_hist / stats['sample_size']
-            observable_stats[cseed][pop] = stats
+                observable_hist_mat[cpop] = np.zeros( ( len( seeds ), len( observable_hist ) ) ) # initialize histogram matrix for each population
+            observable_hist_mat[cpop][cseed] = observable_hist / stats['sample_size'] # store relative histogram in histogram matrix
+            observable_stats[cseed][pop] = stats # store statistics
 
-    # save statistics as json file
-    helpers.dict2json( observable_stats, sim_dict['data_path'] + f'{observable_name}_stats.json' )
+    helpers.dict2json( observable_stats, sim_dict['data_path'] + f'{observable_name}_stats.json' ) # save statistics as json file
 
     return observable_hist_mat, observable_best_bins, observable_stats
 
-def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_best_bins, observable_ks_distances):
+def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: dict, observable_best_bins: np.ndarray, observable_ks_distances: dict ) -> None:
+    '''
+    Plots histograms and KS-distance distributions for different populations.
+    -------------------------------------------------------------------------
+    Parameters:
+    - observable_name : str
+        The name of the observable being plotted.
+    - x_label : str
+        The label for the x-axis of the histogram plots.
+    - observable_hist_mat : dict
+        A dictionary containing the histograms for each population, where keys are population indices.
+    - observable_best_bins : ndarray
+        An array containing the best bin edges for each population.
+    - observable_ks_distances : dict
+        A dictionary containing KS-distance values for each population, where keys are population names.
+    -------------------------------------------------------------------------
+    Returns:
+    - None
+    '''
 
     from matplotlib import rcParams
-    rcParams['figure.figsize']    = (ref_dict['max_fig_width'] / 3., (4. / 9.) * ref_dict['max_fig_width'])#(7.5,7)
+    rcParams['figure.figsize']    = (ref_dict['max_fig_width'] / 3., (4. / 9.) * ref_dict['max_fig_width'])
     rcParams['figure.dpi']        = 300
     rcParams['font.family']       = 'sans-serif'
     rcParams['font.size']         = 8
@@ -234,7 +279,7 @@ def plot_data_dists(observable_name, x_label, observable_hist_mat, observable_be
 def main():
     data_path = sim_dict['data_path']
 
-    # Read the data in
+    # Read in the data from json files
     rates = helpers.json2dict( f'{data_path}rates.json' )
     spike_cvs = helpers.json2dict( f'{data_path}spike_cvs.json' )
     spike_ccs = helpers.json2dict( f'{data_path}spike_ccs.json' )
@@ -260,4 +305,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

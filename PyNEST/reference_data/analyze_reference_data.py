@@ -22,6 +22,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 #####################
+'''
+Analyze reference data per seed generated with generate_reference_data.py.
+'''
+
 import time
 import nest
 import numpy as np
@@ -72,7 +76,24 @@ random.seed( ref_dict['seed_subsampling'] )  # set seed for reproducibility
 #                                   Define auxiliary functions to analyze and plot data                                #
 ########################################################################################################################
 
-def analyze_single_neuron_stats(observable_name, func):
+def analyze_single_neuron_stats(observable_name: str, func: callable ) -> dict:
+    '''
+    Analyze single neuron statistics such as time avaraged firing rates and ISI CVs.
+    --------------------------------------------------------------------------------
+    Parameters:
+    - observable_name : str
+        Name of the observable to be analyzed and stored.
+        Name will be used to store the observable as json file and used in further analysis.
+    - func : function
+        Function to compute the single neuron statistic. Are part of the microcircuit package and can be find in helpers.py.
+        - 'helpers.time_averaged_single_neuron_firing_rates': computes time averaged firing rates per neuron
+        - 'helpers.single_neuron_isi_cvs': computes interval spike irregularity as count variance per neuron
+    --------------------------------------------------------------------------------
+    Returns:
+    - observable : dict
+        Dictionary containing the single neuron statistic for all populations.
+    '''
+
     observable = {} # list of single neuron observable [pop][neuron]
     recording_interval = ( max( ref_dict['t_min'], ref_dict['t_presim'] ), ref_dict['t_presim'] + ref_dict['t_sim'] )
 
@@ -83,16 +104,31 @@ def analyze_single_neuron_stats(observable_name, func):
     for pop in populations:
         observable[pop] = {}
 
-        label = 'spike_recorder-' + str( nodes['spike_recorder_%s' % pop][0] )
-        spikes = helpers.load_spike_data( data_path, label )
-        observable[pop] = list( func( spikes, nodes[pop], recording_interval ) )
+        label = 'spike_recorder-' + str( nodes['spike_recorder_%s' % pop][0] ) # label of spike recorder device
+        spikes = helpers.load_spike_data( data_path, label ) # load spike data for population
+        observable[pop] = list( func( spikes, nodes[pop], recording_interval ) ) # compute single neuron statistic
 
     # store observable as json file
     helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )
 
     return observable
 
-def analyze_pairwise_stats( observable_name, func ):
+def analyze_pairwise_stats( observable_name: str, func: callable ) -> dict:
+    '''
+    Analyze pairwise statistics such as spike count correlations.
+    -------------------------------------------------------------
+    Parameters:
+    - observable_name : str
+        Name of the observable to be analyzed and stored.
+        Name will be used to store the observable as json file and used in further analysis.
+    - func : function
+        Function to compute the pairwise statistic. Are part of the microcircuit package and can be find in helpers.py.
+        - 'helpers.pairwise_spike_count_correlations': computes pairwise spike count correlations for a subsample of neurons of each population.
+    -------------------------------------------------------------
+    Returns:
+    - observable : dict
+        Dictionary containing the pairwise statistic for all populations.
+    '''
 
     recording_interval = ( max ( ref_dict['t_min'], ref_dict['t_presim'] ), ref_dict['t_presim'] + ref_dict['t_sim'] )
 
@@ -106,24 +142,23 @@ def analyze_pairwise_stats( observable_name, func ):
         observable[pop] = {}
 
         pop_nodes = nodes[pop]  # list of neuron nodes for the population
-        label = 'spike_recorder-' + str( nodes['spike_recorder_%s' % pop][0] )
-        spikes = helpers.load_spike_data( data_path, label )
+        label = 'spike_recorder-' + str( nodes['spike_recorder_%s' % pop][0] ) # label of spike recorder device
+        spikes = helpers.load_spike_data( data_path, label ) # load spike data for population
 
-        # Get random indices without replacement
-        selected_nodes = random.sample( pop_nodes, ref_dict['subsample_size'] )
+        # Generate random subsample of neuron nodes for the population for pairwise analysis (without replacement)
+        selected_nodes = random.sample( pop_nodes, ref_dict['subsample_size'] ) # subsample of neuron nodes for the population
 
-        observable[pop] = list( func( spikes, selected_nodes, recording_interval, ref_dict['binsize'] ) )
+        observable[pop] = list( func( spikes, selected_nodes, recording_interval, ref_dict['binsize'] ) ) # compute pairwise statistic
 
-    # store pairwise spike count correlations as json file
-    helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )
+    helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' ) # store observable as json file
 
     return observable
 
 def main():
 
-    analyze_single_neuron_stats( 'rates', helpers.time_averaged_single_neuron_firing_rates )
-    analyze_single_neuron_stats( 'spike_cvs', helpers.single_neuron_isi_cvs )
-    analyze_pairwise_stats( 'spike_ccs', helpers.pairwise_spike_count_correlations )
+    analyze_single_neuron_stats( 'rates', helpers.time_averaged_single_neuron_firing_rates ) # compute and store time averaged firing rates
+    analyze_single_neuron_stats( 'spike_cvs', helpers.single_neuron_isi_cvs ) # compute and store single neuron ISI CVs
+    analyze_pairwise_stats( 'spike_ccs', helpers.pairwise_spike_count_correlations ) # compute and store pairwise spike count correlations
 
     ## current memory consumption of the python process (in MB)
     import psutil
