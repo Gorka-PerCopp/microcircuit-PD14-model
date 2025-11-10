@@ -76,7 +76,7 @@ random.seed( ref_dict['seed_subsampling'] )  # set seed for reproducibility
 #                                   Define auxiliary functions to analyze and plot data                                #
 ########################################################################################################################
 
-def analyze_single_neuron_stats(observable_name: str, func: callable ) -> dict:
+def analyze_single_neuron_stats( observable_name: str, func: callable ) -> dict:
     '''
     Analyze single neuron statistics such as time avaraged firing rates and ISI CVs.
     --------------------------------------------------------------------------------

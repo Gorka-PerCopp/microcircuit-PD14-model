@@ -65,7 +65,7 @@ seeds = ref_dict['RNG_seeds'] # list of seeds
 #                                   Define auxiliary functions to plot data                                            #
 ########################################################################################################################
 
-def compute_data_dist( observable: dict, observable_name: str, observable_limits: tuple[float, float] = (0, 0), units: str='', bin_size: float=None ) -> tuple[dict, dict, dict]:
+def compute_data_dist( observable: dict, observable_name: str, observable_limits: tuple[float, float] = None, units: str='', bin_size: float=None ) -> tuple[dict, dict, dict]:
     '''
     Compute histograms and statistics for given observable for each population across all seeds.
     --------------------------------------------------------------------------------------------
@@ -94,24 +94,24 @@ def compute_data_dist( observable: dict, observable_name: str, observable_limits
     # compute the best binning for each histogram
     if bin_size is None:
         binsizes = np.zeros( ( len( seeds ), len( populations ) ) )
-        pop_bin_min_vals = np.zeros( ( len( seeds ), len( populations ) ) )
-        pop_bin_max_vals = np.zeros( ( len( seeds ), len( populations ) ) )
+        min_bin_vals = np.zeros( ( len( seeds ), len( populations ) ) )
+        max_bin_vals = np.zeros( ( len( seeds ), len( populations ) ) )
         for cseed, seed in enumerate( seeds ):
             cseed_str = str( cseed )
             for cpop, pop in enumerate( populations ):
                 _, bins, _ = helpers.data_distribution( np.array( observable[cseed_str][pop] ), pop, f'{units}' ) # calculate histogram for each population across seeds
-                pop_bin_min_vals[cseed][cpop] = np.min( bins ).tolist() # store min bin value
-                pop_bin_max_vals[cseed][cpop] = np.max( bins ).tolist() # store max bin value
+                min_bin_vals[cseed][cpop] = np.min( bins ).tolist() # store min bin values for each seed and population
+                max_bin_vals[cseed][cpop] = np.max( bins ).tolist() # store max bin value for each seed and population
                 binsizes[cseed][cpop] = np.diff( bins )[0] # store all bin sizes
 
         min_binsizes = np.min( binsizes, axis=0 ) # get min bin size across seeds for each population
-        min_bin_values = np.min( bin_min_vals, axis=0 ) # get min bin value across seeds for each population
-        max_bin_values = np.max( bin_max_vals, axis=0 ) # get max bin value across seeds for each population
+        min_min_bin_vals = np.min( min_bin_vals, axis=0 ) # get min of min bin value across seeds for each population
+        max_max_bin_vals = np.max( max_bin_vals, axis=0 ) # get max of max bin value across seeds for each population
 
         observable_best_bins = {}
         for cpop, pop in enumerate( populations ):
-            min_range = observable_limits[0] if observable_limits[0] > 0 else min_bin_values[cpop].tolist() # get min range (can either be given or from data)
-            max_range = observable_limits[1] if observable_limits[1] > 0 else max_bin_values[cpop].tolist() # get max range (can either be given or from data)
+            min_range = observable_limits[0] if observable_limits is not None else min_min_bin_vals[cpop].tolist() # get min range (can either be given or from data)
+            max_range = observable_limits[1] if observable_limits is not None else max_max_bin_vals[cpop].tolist() # get max range (can either be given or from data)
             min_width = min_binsizes[cpop].tolist() # get min bin size
             observable_best_bins[cpop] = (min_range, max_range, min_width, np.arange( min_range, max_range + min_width, min_width ).tolist()) # store best binning for each population (min, max, bin_size, bin_edges)
 
@@ -123,15 +123,14 @@ def compute_data_dist( observable: dict, observable_name: str, observable_limits
             cseed_str = str( cseed )
             # calculate histogram for each population
             for cpop, pop in enumerate( populations ):
-                _, bins, _ = helpers.data_distribution( np.array( observable[cseed_str][pop] ), pop, f'{units}' ) # calculate histogram for each population across seeds
-                bin_min_vals[cseed][cpop] = np.min( bins ).tolist() # store min bin value
-                bin_max_vals[cseed][cpop] = np.max( bins ).tolist() # store max bin value
+                bin_min_vals[cseed][cpop] = np.min( np.array( observable[cseed_str][pop] ) ).tolist() # store min observable value
+                bin_max_vals[cseed][cpop] = np.max( np.array( observable[cseed_str][pop] ) ).tolist() # store max observable value
         
-        min_bin_vals = np.min( bin_min_vals, axis=0 ) # get min bin values across seeds for each population
-        max_bin_vals = np.max( bin_max_vals, axis=0 ) # get max bin values across seeds for each population
+        min_min_bin_vals = np.min( bin_min_vals, axis=0 ) # get min of min bin values across seeds for each population
+        max_max_bin_vals = np.max( bin_max_vals, axis=0 ) # get max of max bin values across seeds for each population
 
-        min_range = observable_limits[0] if observable_limits[0] > 0 else min_bin_vals[cpop].tolist() # get min range (can either be given or from data)
-        max_range = observable_limits[1] if observable_limits[1] > 0 else max_bin_vals[cpop].tolist() # get max range (can either be given or from data)
+        min_range = observable_limits[0] if observable_limits is not None else min_min_bin_vals[cpop].tolist() # get min range (can either be given or from data)
+        max_range = observable_limits[1] if observable_limits is not None else max_max_bin_vals[cpop].tolist() # get max range (can either be given or from data)
         min_width = bin_size # use given bin size
         observable_best_bins = {}
         for cpop, pop in enumerate( populations ):
@@ -159,13 +158,13 @@ def compute_data_dist( observable: dict, observable_name: str, observable_limits
 
     return observable_hist_mat, observable_best_bins, observable_stats
 
-def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: dict, observable_best_bins: np.ndarray, observable_ks_distances: dict ) -> None:
+def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: dict, observable_best_bins: np.ndarray, observable_ks_distances: dict, observable_limits: tuple[float,float]=None ) -> None:
     '''
     Plots histograms and KS-distance distributions for different populations.
     -------------------------------------------------------------------------
     Parameters:
     - observable_name : str
-        The name of the observable being plotted.
+        The name of the observable being plotted (used for figure file name).
     - x_label : str
         The label for the x-axis of the histogram plots.
     - observable_hist_mat : dict
@@ -174,6 +173,8 @@ def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: di
         An array containing the best bin edges for each population.
     - observable_ks_distances : dict
         A dictionary containing KS-distance values for each population, where keys are population names.
+    - observable_limits : tuple[float,float], optional
+        The limits for the x-axis of the histogram plots. If None, limits are determined from the data.
     -------------------------------------------------------------------------
     Returns:
     - None
@@ -202,8 +203,13 @@ def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: di
         x_max_hist = max( x_max_hist, np.max( bin_edges ) )
         x_min_hist = min( x_min_hist, np.min( bin_edges ) )
 
+    ks_max = 0
+    for cpop, pop in enumerate( populations ):
+        ks_values = observable_ks_distances[pop]["list"]
+        ks_max = max( ks_max, np.max( ks_values ) )
+
     # plot of histograms for all populations
-    fig_hist, axes_hist = plt.subplots( 4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.0, 'wspace': 0.0} )
+    fig_hist, axes_hist = plt.subplots( 4, 2, sharex=True, gridspec_kw={'hspace': 0.0, 'wspace': 0.0} )
 
     # plot of distributions of KS -distances
     fig_ks, axes_ks = plt.subplots( 4, 2, sharex=True, sharey=True, gridspec_kw={'hspace': 0.0, 'wspace': 0.0} )
@@ -230,6 +236,24 @@ def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: di
 
         ax_hist.plot( bin_centers, pop_mean_hist, 'k--', label='Mean' )
         ax_hist.fill_between( bin_centers, pop_mean_hist - pop_std_hist, pop_mean_hist + pop_std_hist, alpha=0.3 )
+
+        # set x and y limits
+        if observable_limits is not None:
+            ax_hist.set_xlim( observable_limits[0], observable_limits[1] )
+            ax_hist.set_xticks( [observable_limits[0], (observable_limits[0] + observable_limits[1]) / 2],
+                              [r'$%.0f$' % observable_limits[0], r'$%.0f$' % ((observable_limits[0] + observable_limits[1]) / 2)] )
+            if observable_name == 'spike_ccs':
+                ax_hist.set_xticks( [observable_limits[0]/2, 0, observable_limits[1]/2],
+                                  [r'$%.2f$' % (observable_limits[0]/2), r'$0$', r'$%.2f$' % (observable_limits[1]/2)] )
+            
+        else:
+            ax_hist.set_xlim( 0, x_max_hist )
+            ax_hist.set_xticks([0, x_max_hist/2], [r'$0$', r'$%.0f$' % (x_max_hist/2)] )
+            if observable_name == 'spike_ccs':
+                ax_hist.set_xlim(x_min_hist, x_max_hist)
+                ax_hist.set_xticks([x_min_hist/2, 0, x_max_hist/2], [r'$%.2f$' % (x_min_hist/2), r'$0$', r'$%.2f$' % (x_max_hist/2)] )
+
+        ax_hist.set_ylim( 0, np.max( pop_mean_hist ) * 1.2 )
         
         ks_values = observable_ks_distances[pop]["list"]
         mean = std = None
@@ -250,28 +274,22 @@ def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: di
                 verticalalignment='top', horizontalalignment='right' )
         ax_ks.text( 0.95, 0.95, r'%s' % pop, transform=ax_ks.transAxes, fontsize=8,
                 verticalalignment='top', horizontalalignment='right' )
-        
-        ax_ks.set_xlim( 0, np.max( ks_values ) )
-
-        if cpop // 2 == 3:
-            ax_ks.set_xlabel( r'KS-distance' )
             
         if cpop % 2 == 0:
             ax_hist.set_ylabel( r'rel. freq.' )
             ax_hist.set_yticks( [] )
             ax_ks.set_ylabel( r'rel. freq.' )
             ax_ks.set_yticks( [] )
-        
-        if observable_name == 'spike_ccs':
-            ax_hist.set_xlim( ref_dict['cc_lim'][0], ref_dict['cc_lim'][1] )
         else:
-            ax_hist.set_xlim( 0, x_max_hist )
-            ax_hist.set_xticks([0, x_max_hist/2], [r'$0$', r'$%.0f$' % (x_max_hist/2)] )
+            ax_hist.set_yticks( [] )
+    
+    ax_ks.set_xlim( 0, ks_max * 1.1)
+    ax_ks.set_xticks( [0, ks_max / 2], [r'$0$', r'$%.2f$' % (ks_max / 2)] )
 
     fig_hist.text(0.5, -0.01, x_label, ha="center", va="center")
-
     fig_hist.savefig(f'{data_path}{observable_name}_distributions.pdf',
                  bbox_inches="tight", pad_inches=0.02)
+    fig_ks.text(0.5, 0.0, r'KS-distance', ha="center", va="center")
     fig_ks.savefig(f'{data_path}{observable_name}_KS_distances.pdf',
                bbox_inches="tight", pad_inches=0.02)
     
@@ -289,14 +307,14 @@ def main():
     spike_ccs_ks_distances = helpers.json2dict( f'{data_path}spike_ccs_ks_distances.json' )
 
     # Compute distributions and statistics
-    rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( rates, 'rate', ref_dict['rate_lim'], '1/s', bin_size=ref_dict['rate_binsize'] )
-    spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( spike_cvs, 'spike_cvs', ref_dict['cv_lim'], bin_size=ref_dict['cv_binsize'] )
-    spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( spike_ccs, 'spike_ccs', ref_dict['cc_lim'], bin_size=ref_dict['cc_binsize'] )
+    rate_hist_mat, rate_best_bins, rate_stats = compute_data_dist( observable=rates, observable_name='rate', observable_limits=ref_dict['rate_lim'], units='1/s', bin_size=ref_dict['rate_binsize'] )
+    spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_stats = compute_data_dist( observable=spike_cvs, observable_name='spike_cvs', observable_limits=ref_dict['cv_lim'], bin_size=ref_dict['cv_binsize'] )
+    spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_stats = compute_data_dist( observable=spike_ccs, observable_name='spike_ccs', observable_limits=ref_dict['cc_lim'], bin_size=ref_dict['cc_binsize'] )
 
     # Plot distributions and KS distances
-    plot_data_dists( 'rate', r'\begin{center} time averaged single neuron\\firing rate (s$^{-1}$) \end{center}', rate_hist_mat, rate_best_bins, rate_ks_distances )
-    plot_data_dists( 'spike_cvs', r'spike irregularity (ISI CV)', spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_ks_distances )
-    plot_data_dists( 'spike_ccs', r'\begin{center} spike correlation coefficient\\(bin size $%.1f$ ms) \end{center}' % ref_dict['binsize'], spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances )
+    plot_data_dists( 'rate', r'\begin{center} time averaged single neuron\\firing rate (s$^{-1}$) \end{center}', rate_hist_mat, rate_best_bins, rate_ks_distances, observable_limits=ref_dict['rate_lim'] )
+    plot_data_dists( 'spike_cvs', r'spike irregularity (ISI CV)', spike_cvs_hist_mat, spike_cvs_best_bins, spike_cvs_ks_distances, observable_limits=ref_dict['cv_lim'] )
+    plot_data_dists( 'spike_ccs', r'\begin{center} spike correlation coefficient\\(bin size $%.1f$ ms) \end{center}' % ref_dict['binsize'], spike_ccs_hist_mat, spike_ccs_best_bins, spike_ccs_ks_distances, observable_limits=ref_dict['cc_lim'] )
 
     ## current memory consumption of the python process (in MB)
     import psutil
