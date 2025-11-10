@@ -107,12 +107,17 @@ def compute_data_dist( observable: dict, observable_name: str, observable_limits
         min_binsizes = np.min( binsizes, axis=0 ) # get min bin size across seeds for each population
         min_min_bin_vals = np.min( min_bin_vals, axis=0 ) # get min of min bin value across seeds for each population
         max_max_bin_vals = np.max( max_bin_vals, axis=0 ) # get max of max bin value across seeds for each population
+        
+        binsize = np.min( min_binsizes ) # use min of min bin sizes across populations as bin size
+        min_min_min_bin_val = np.min( min_min_bin_vals ) # use min of min bin values across populations as min bin value
+        max_max_max_bin_val = np.max( max_max_bin_vals ) # use max of max bin values across populations as max bin value
+
+        min_range = observable_limits[0] if observable_limits is not None else min_min_min_bin_val.tolist() # get min range (can either be given or from data)
+        max_range = observable_limits[1] if observable_limits is not None else max_max_max_bin_val.tolist() # get max range (can either be given or from data)
+        min_width = min_binsizes[cpop].tolist() # get min bin size
 
         observable_best_bins = {}
         for cpop, pop in enumerate( populations ):
-            min_range = observable_limits[0] if observable_limits is not None else min_min_bin_vals[cpop].tolist() # get min range (can either be given or from data)
-            max_range = observable_limits[1] if observable_limits is not None else max_max_bin_vals[cpop].tolist() # get max range (can either be given or from data)
-            min_width = min_binsizes[cpop].tolist() # get min bin size
             observable_best_bins[cpop] = (min_range, max_range, min_width, np.arange( min_range, max_range + min_width, min_width ).tolist()) # store best binning for each population (min, max, bin_size, bin_edges)
 
     # If bin size is given, compute binning vectors accordingly
@@ -129,8 +134,11 @@ def compute_data_dist( observable: dict, observable_name: str, observable_limits
         min_min_bin_vals = np.min( bin_min_vals, axis=0 ) # get min of min bin values across seeds for each population
         max_max_bin_vals = np.max( bin_max_vals, axis=0 ) # get max of max bin values across seeds for each population
 
-        min_range = observable_limits[0] if observable_limits is not None else min_min_bin_vals[cpop].tolist() # get min range (can either be given or from data)
-        max_range = observable_limits[1] if observable_limits is not None else max_max_bin_vals[cpop].tolist() # get max range (can either be given or from data)
+        min_min_min_bin_val = np.min( min_min_bin_vals ) # use min of min bin values across populations as min bin value
+        max_max_max_bin_val = np.max( max_max_bin_vals ) # use max of max bin values across populations as max bin value
+
+        min_range = observable_limits[0] if observable_limits is not None else min_min_min_bin_val.tolist() # get min range (can either be given or from data)
+        max_range = observable_limits[1] if observable_limits is not None else max_max_max_bin_val.tolist() # get max range (can either be given or from data)
         min_width = bin_size # use given bin size
         observable_best_bins = {}
         for cpop, pop in enumerate( populations ):
@@ -241,7 +249,7 @@ def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: di
         if observable_limits is not None:
             ax_hist.set_xlim( observable_limits[0], observable_limits[1] )
             ax_hist.set_xticks( [observable_limits[0], (observable_limits[0] + observable_limits[1]) / 2],
-                              [r'$%.0f$' % observable_limits[0], r'$%.0f$' % ((observable_limits[0] + observable_limits[1]) / 2)] )
+                              [r'$%.1f$' % observable_limits[0], r'$%.1f$' % ((observable_limits[0] + observable_limits[1]) / 2)] )
             if observable_name == 'spike_ccs':
                 ax_hist.set_xticks( [observable_limits[0]/2, 0, observable_limits[1]/2],
                                   [r'$%.2f$' % (observable_limits[0]/2), r'$0$', r'$%.2f$' % (observable_limits[1]/2)] )
