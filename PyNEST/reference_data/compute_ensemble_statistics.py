@@ -22,6 +22,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 #####################
+'''
+Compute and analyze ensemble statistics across seeds from reference data generated with generate_reference_data.py.
+'''
+
 import time
 import nest
 import numpy as np
@@ -59,25 +63,49 @@ sim_dict['data_path'] = 'data/data_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) )
 ########################################################################################################################
 #                                   Define auxiliary functions to analyze and plot data                                #
 ########################################################################################################################
-def concatenate_data( observable_name ):
+def concatenate_data( observable_name: str ) -> dict:
+    '''
+    Concatenate data across different seeds.
+    ----------------------------------------
+    Parameters:
+    - observable_name: str 
+        Name of the observable to concatenate (e.g., 'rates', 'spike_cvs', 'spike_ccs').
+        Needs to match the filename used to store the data per seed in 'analyze_reference_data.py'.
+    -----------------------------------------
+    Returns:
+    - observable: dict
+        Dictionary containing the concatenated data across seeds.
+    '''
+
     observable = {}
 
     for cseed, seed in enumerate( seeds ):
         observable[cseed] = {}
         data_path = sim_dict['data_path'] + 'seed-%s/' % seed
 
-        # load data per seed as dictionary sorted by populations
-        data_per_seed = helpers.json2dict( f'{data_path}{observable_name}.json' )
+        data_per_seed = helpers.json2dict( f'{data_path}{observable_name}.json' ) # load data per seed as dictionary sorted by populations
 
-        # concatenate data
-        observable[cseed] = data_per_seed
+        observable[cseed] = data_per_seed # concatenate data
     
-    # store concatenated data as json file
-    helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' )
+    helpers.dict2json( observable, sim_dict['data_path'] + f'{observable_name}.json' ) # store concatenated data as json file
 
     return observable
 
-def compute_ks_distances( observable, observable_name ):
+def compute_ks_distances( observable: dict, observable_name: str ) -> dict:
+    '''
+    Compute Kolmogorov-Smirnov distances between distributions of an observable across different seeds.
+    ---------------------------------------------------------------------------------------------------
+    Parameters:
+    - observable: dict
+        Dictionary containing the concatenated data across seeds.
+    - observable_name: str
+        Name of the observable to compute KS distances for (e.g., 'rate', 'spike_cvs', 'spike_ccs').
+    ---------------------------------------------------------------------------------------------------
+    Returns:
+    - observable_ks_distances: dict
+        Dictionary containing the KS distances between distributions of the observable across different seeds.
+    '''
+
     observable_ks_distances = {} # list of ks distances [pop][seed][ks_distance to other seed]
     for cpop, pop in enumerate( populations ):
         observable_ks_distances[pop] = {
@@ -85,9 +113,8 @@ def compute_ks_distances( observable, observable_name ):
             "list": []      # to compute mean and std
         }
 
-        # clean data: remove NaNs
         for cseed, seed in enumerate( seeds ):
-            observable[cseed][pop] = np.delete( observable[cseed][pop], np.where( np.isnan( observable[cseed][pop] ) ) )
+            observable[cseed][pop] = np.delete( observable[cseed][pop], np.where( np.isnan( observable[cseed][pop] ) ) ) # clean data: remove NaNs
 
         n_seeds = len( seeds ) 
 
@@ -98,8 +125,7 @@ def compute_ks_distances( observable, observable_name ):
                 observable_ks_distances[pop]["seeds"][i][j] = observable_ks_distance
                 observable_ks_distances[pop]["list"].append( observable_ks_distance )
 
-    # save ks distances as json file
-    helpers.dict2json( observable_ks_distances, sim_dict['data_path'] + f'{observable_name}_ks_distances.json' )
+    helpers.dict2json( observable_ks_distances, sim_dict['data_path'] + f'{observable_name}_ks_distances.json' ) # save ks distances as json file
 
     return observable_ks_distances
 
