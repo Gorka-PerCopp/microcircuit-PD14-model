@@ -38,7 +38,7 @@ params = {
     't_presim': 500.0,
     # simulation time for analysis in ms
     #'t_sim': 1.0e+4,
-    't_sim': 6.0e+5,
+    't_sim': 9.0e+5,
     # local number of threads
     'local_num_threads': 64,
     #########################
