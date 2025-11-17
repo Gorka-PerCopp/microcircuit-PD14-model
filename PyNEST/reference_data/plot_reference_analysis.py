@@ -301,6 +301,12 @@ def plot_data_dists( observable_name: str, x_label: str, observable_hist_mat: di
     fig_ks.savefig(f'{data_path}{observable_name}_KS_distances.pdf',
                bbox_inches="tight", pad_inches=0.02)
     
+    # save figures for README.md
+    fig_hist.savefig(f'figures/{observable_name}_distributions_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) ) + 's.png',
+                 bbox_inches="tight", pad_inches=0.02)
+    fig_ks.savefig(f'figures/{observable_name}_KS_distances_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) ) + 's.png',
+               bbox_inches="tight", pad_inches=0.02)
+    
 
 def main():
     data_path = sim_dict['data_path']
