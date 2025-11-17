@@ -52,7 +52,6 @@ In [plot_reference_analysis.py](plot_reference_analysis.py) one finds an example
 
 | sim time |rate | ISI CV | CC |
 |--|--|--|--|
-| $`T = 10`$s | <img src="figures/rate_distributions_T10s.png" width="300"/> | <img src="figures/spike_cvs_distributions_T10s.png" width="300"/> | <img src="figures/spike_ccs_distributions_T10s.png" width="300"/> |
 | $`T = 900`$s | <img src="figures/rate_distributions_T900s.png" width="300"/> | <img src="figures/spike_cvs_distributions_T900s.png" width="300"/> | <img src="figures/spike_ccs_distributions_T900s.png" width="300"/> |
 
 * plot distributions of KS distances across pairs of network realizations for each spike statistics and each population
@@ -61,7 +60,6 @@ In [plot_reference_analysis.py](plot_reference_analysis.py) one finds an example
 
 | sim time |rate | ISI CV | CC |
 |--|--|--|--|
-| $`T = 10`$s | <img src="figures/rate_KS_distances_T10s.png" width="300"/> | <img src="figures/spike_cvs_KS_distances_T10s.png" width="300"/> | <img src="figures/spike_ccs_KS_distances_T10s.png" width="300"/> |
 | $`T = 900`$s | <img src="figures/rate_KS_distances_T900s.png" width="300"/> | <img src="figures/spike_cvs_KS_distances_T900s.png" width="300"/> | <img src="figures/spike_ccs_KS_distances_T900s.png" width="300"/> |
 
 ## Cluster submission workflow
