@@ -11,7 +11,7 @@ Usage:
 python generate_reference_data.py --seed <RNGseed> --path <data_path>
 ```
 
-The script uses the parameters defined in [`params.py`](params.py), which overwrite some of the default parameters in [source](../src/microcircuit).
+The script uses the parameters defined in [`params.py`](params.py), which overwrite some of the default parameters in [../src/microcircuit](../src/microcircuit).
 The random number generator seed and the data path can be set via the (optional) command line arguments `<RNGseed>` and `<data_path>`.
 
 ## Sets of reference data
