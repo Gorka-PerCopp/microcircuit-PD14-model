@@ -23,7 +23,7 @@
 
 #####################
 '''
-Analyze reference data per seed generated with generate_reference_data.py.
+Analyze reference data generated with generate_reference_data.py.
 '''
 
 import time

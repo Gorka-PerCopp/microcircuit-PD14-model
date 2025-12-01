@@ -22,8 +22,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 #####################
+
 '''
-Compute and analyze ensemble statistics across seeds from reference data generated with generate_reference_data.py.
+Compute spike statistics across the ensemble of network realizations (RNG seeds)
+from the single-realization analysis performed with analyze_reference_data.py.
 '''
 
 import time
@@ -60,9 +62,9 @@ seeds = ref_dict['RNG_seeds'] # list of seeds
 
 sim_dict['data_path'] = 'data/data_T' + str( int( ref_dict['t_sim'] * 1.0e-3 ) ) + 's/'
 
-########################################################################################################################
-#                                   Define auxiliary functions to analyze and plot data                                #
-########################################################################################################################
+#######################################################
+# Define auxiliary functions to analyze and plot data #
+#######################################################
 def concatenate_data( observable_name: str ) -> dict:
     '''
     Concatenate data across different seeds.
