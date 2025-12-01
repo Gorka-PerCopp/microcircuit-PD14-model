@@ -13,28 +13,35 @@ python generate_reference_data.py --seed <RNGseed> --path <data_path>
 
 The script uses the parameters defined in [`params.py`](params.py), which overwrite some of the default parameters in [../src/microcircuit](../src/microcircuit).
 The random number generator seed and the data path can be set via the (optional) command line arguments `<RNGseed>` and `<data_path>`.
-
-## Sets of reference data
-
-For convenience, we provide sets of pre-simulated reference data for different simulation times and network realizations (RNGseeds) at [LinkToZenodo]().
-
-The spike data is stored in text files `data_T<sim_time_in_s>s/seed-<RNGseed>/spike_recorder-<rec-id>-<thread-id>.dat` (1st column: neuron ID, 2nd column: spike time in ms). Here, `<sim_time_in_s>` refers to the simulation time in seconds, `<RNGseed>` to the random number generator seed to generate a specific realization of the model, `<rec-id>` to the population specific spike-recorder ID, and `<thread-id>` to the thread ID.
-Each subfolder in addition contains metadata documenting the node IDs for each neuron population (`nodes.json`) as well as the complete sets of model and simulation parameters (`sim_dict.json`, `net_dict.json`, `stim_dict.json`).
   
 ## Data analysis
+
+The analysis of the spike data documented here closely follows the strategy used in [Dasbach et al., 2021](https://doi.org/10.3389/fnins.2021.757790).
+
+### Spike statistics of each network realization
+
+In a first step, we compute and store the time averaged firing rates and the coefficients of variation of inter-spike intervals (ISI CVs) for each individual neuron in the network (`rates.json`, `spikes_cvs.json`).
+Similarly, we calculate and store the spike spike-count correlation coefficients (on a millisecond timescale) for all pairs of neurons within a given subset of neurons (`spikes_ccs`.json`).
+
 In [`analyze_reference_data.py`](analyze_reference_data.py) one finds an example implementation of the analysis of statistics within one single realization of the network:
 * calculates spike statistics (time averaged single neuron firing rates and ISI CVs for each neuron, and spike count correlation coefficients for a subset of 250 neurons) in each population for ten different network realizations.
 * has integrated two arguments as commands from the terminal:
   * `--seed`: updates the parameter `rng_seed` in [`sim_params.py`](../src/microcircuit/sim_params.py) which ensures reproducibility of the experiment.
   * `--path`: updates the parameter `data_path` in [`sim_params.py`](../src/microcircuit/sim_params.py) to ensure correct data storage (without overwriting simulations with different seeds).
 
+### Statistics of the ensemble of network realizations
+
+In a second step, we calculate the distributions of firing rates, ISI CVs, and spike correlations across the ensemble of neurons in each population and for each network realization.
+
+The microcircuit model is a probabilistic model: both the network connectivity as well as the initial membrane potentials are randomly generated according to the rules specified in the [model documentation](https://microcircuit-PD14-model.readthedocs.io/en/latest/model_description.html).
+To quantifiy the variability in the above computed spike statistics across the ensemble of network realizations, we compute the Kolmogorov–Smirnov (KS) statistics for the respective distributions (time averaged firing rates, ISI CVs and spike correlations) for each pair of network realizations (`rate_ks_distances.json`, `spike_cvs_ks_distances.json`, `spike_ccs_ks_distances.json`).
+These KS scores quantify the natural variability intrinsic to the model, and are useful when verifying other implementions of the model based on the reference ("ground truth") data provided here.
+For further details, see [Dasbach et al., 2021](https://doi.org/10.3389/fnins.2021.757790).
+
 In [compute_ensemble_stats.py](compute_ensemble_stats.py) one finds an example implementation of the analysis of ensemble statistics comparing different realizations of the network:
 * concatenates the data from all seeds for ensemble analysis.
 * calculates distributions of spike statistics for each population and each network realization
 * calculates Kolmogorov-Smirnoff (KS) distances for each pair of network realizations
-
-The exact analysis follows the paper [Dasbach et al., 2021](https://doi.org/10.3389/fnins.2021.757790), for more infromation on the exact methods please refere to it.
-
 
 ## Data visualization
 In [plot_reference_analysis.py](plot_reference_analysis.py) one finds an example implementation to plot the reference analysis done by the other scripts:
@@ -63,4 +70,13 @@ Specific for slurm queing system:
   * contains the bash command to start the simulation for each job and run the analysis per seed after simulation's end
   * it also contains specifications about the necessary resources
 
+
+## Sets of simulated and analyzed reference data
+
+For convenience, we provide sets of simulated and ananlyzed reference data for different simulation times and network realizations (RNGseeds) at [Zenodo](TODO:AddLinkToZenodo).
+
+The orginal spike data is stored in text files `data_T<sim_time_in_s>s/seed-<RNGseed>/spike_recorder-<rec-id>-<thread-id>.dat` (1st column: neuron ID, 2nd column: spike time in ms). Here, `<sim_time_in_s>` refers to the simulation time in seconds, `<RNGseed>` to the random number generator seed used to generate a specific realization of the model, `<rec-id>` to the population specific spike-recorder ID, and `<thread-id>` to the thread ID.
+Each subfolder in addition contains metadata documenting the node IDs for each neuron population (`nodes.json`), the complete sets of model and simulation parameters (`sim_dict.json`, `net_dict.json`, `stim_dict.json`), as well as the results of the data analysis for each network realization (`rates.json`, `spikes_cvs.json`, `spikes_ccs`.json`).
+
+The results of the data analysis describing the statistics of the respective ensemble of network realizations (seeds) are stored in `data_T<sim_time_in_s>s` (`rates.json`, `spikes_cvs.json`, `spikes_ccs`.json`, `rate_ks_distances.json`, `spike_cvs_ks_distances.json`, `spike_ccs_ks_distances.json`). 
 
