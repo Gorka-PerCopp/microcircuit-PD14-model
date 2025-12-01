@@ -50,13 +50,13 @@ The script [plot_reference_analysis.py](plot_reference_analysis.py) visualizes t
 |--|--|--|
 | <img src="figures/rate_distributions_T900s.png" width="300"/> | <img src="figures/spike_cvs_distributions_T900s.png" width="300"/> | <img src="figures/spike_ccs_distributions_T900s.png" width="300"/> |
 
-Distributions of the time averaged single-neuron firing rates (left), the coefficients of variation of the inter-spike intervals (ISI CVs; middle), and the pairwise spike correlation coefficients (right) across neurons for each neuronal population of the microcircuit model, for a simulation time $`T = 900`$s. Solid gray and dashed black curves depict results of individual network realizations and ensemble averages, respectively. Averaged Kolmogorov–Smirnov scores $`D_\text{KS}`$ quantify the variability of the respective distributions across the ensemble of network realizations.
+Distributions of the time averaged single-neuron firing rates (left), the coefficients of variation of the inter-spike intervals (ISI CVs; middle), and the pairwise spike correlation coefficients (right) across neurons for each neuronal population of the microcircuit model, for a simulation time $`T = 15`$min. Solid gray and dashed black curves depict results of individual network realizations and ensemble averages, respectively. Averaged Kolmogorov–Smirnov scores $`D_\text{KS}`$ quantify the variability of the respective distributions across the ensemble of network realizations.
 
 | firing rate | spike irregularity | spike correlation |
 |--|--|--|
 | <img src="figures/rate_KS_distances_T900s.png" width="300"/> | <img src="figures/spike_cvs_KS_distances_T900s.png" width="300"/> | <img src="figures/spike_ccs_KS_distances_T900s.png" width="300"/> |
 
-Distributions of Kolmogorov–Smirnov (KS) scores across pairs of network realizations for each spike statistics (firing rates, ISI CVs and spike correlations) and each neuronal population of the microcircuit model (simulation time $`T = 900`$s).
+Distributions of Kolmogorov–Smirnov (KS) scores across pairs of network realizations for each spike statistics (firing rates, ISI CVs and spike correlations) and each neuronal population of the microcircuit model (simulation time $`T = 15`$min).
 Red and blue vertical lines depict average KS scores $`D_\text{KS}`$ and standard deviations across pairs of network realizations.
 
 ## Example of a cluster submission workflow
