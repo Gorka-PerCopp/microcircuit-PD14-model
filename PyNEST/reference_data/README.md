@@ -59,16 +59,17 @@ Distributions of the time averaged single-neuron firing rates (left), the coeffi
 Distributions of Kolmogorov–Smirnov (KS) scores across pairs of network realizations for each spike statistics (firing rates, ISI CVs and spike correlations) and each neuronal population of the microcircuit model (simulation time $`T = 900`$s).
 Red and blue vertical lines depict average KS scores $`D_\text{KS}`$ and standard deviations across pairs of network realizations.
 
-## Cluster submission workflow
-Specific for slurm queing system:
-* [`env.sh`](cluster_submission/env.sh):
-  * contains the necessary modules to be loaded and path to source an environment containing the `microcircuit-package` (see [installation README](../README.md)) on the local cluster
-* [`run_benchmark.sh`](cluster_submission/run_benchmark.sh):
-  * contains the workflow to submit ten parallel jobs on the cluster, each with a different realization of the network
-* [`run_job.sh`](cluster_submission/run_job.sh):
-  * contains the bash command to start the simulation for each job and run the analysis per seed after simulation's end
-  * it also contains specifications about the necessary resources
+## Example of a cluster submission workflow
 
+Simulations of the microcircuit model at full scale require substantial amounts of memory (see section "Memory requirements" in [../README.md](../README.md)),
+Moreover, meaningful distributions of spike correlations require long observation/simulation times of ~10 minutes [(Dasbach et al., 2021)](https://doi.org/10.3389/fnins.2021.757790).
+Running such simulations for many network realizations is computationaly demanding.
+In [cluster_submission](cluster_submission), we therefore provide scripts illustrating how to submit the above described data generation and analysis scripts a range of RNG seeds to a compute cluster controlled by a SLURM queuing system.
+
+Executing [`submit.sh`](cluster_submission/submit.sh) submits ten parallel jobs to the queuing system, each for a different network realization.
+[`run_job.sh`](cluster_submission/run_job.sh) specifies required compute resources and executes the simulation and analysis scripts  [generate_reference_data.py](generate_reference_data.py) and [analyze_reference_data.py](analyze_reference_data.py).
+It runs the bash script [`env.sh`](cluster_submission/env.sh) to ensure that all necessary modules and the python environment containing the microcircuit module are loaded on the cluster (see [../README](../README.md)).
+Note that these examples are user and system specific and need to adapted.
 
 ## Sets of simulated and analyzed reference data
 
