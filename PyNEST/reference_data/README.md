@@ -50,7 +50,7 @@ The script [plot_reference_analysis.py](plot_reference_analysis.py) visualizes t
 |--|--|--|
 | <img src="figures/rate_distributions_T900s.png" width="300"/> | <img src="figures/spike_cvs_distributions_T900s.png" width="300"/> | <img src="figures/spike_ccs_distributions_T900s.png" width="300"/> |
 
-Distributions of the time averaged single-neuron firing rates (left), the coefficients of variation of the inter-spike intervals (ISI CVs; middle), and the pairwise spike correlation coefficients (right) across neurons for each neuronal population of the microcircuit model, for a simulation time $`T = 900`$s. Solid gray and dashed black curves depict results of individual network realizations and ensemble averages, respectively. Averaged Kolmogorov–Smirnov (KS) scores $`D_\text{KS}`$ quantify the variability of the respective distributions across the ensemble of network realizations.
+Distributions of the time averaged single-neuron firing rates (left), the coefficients of variation of the inter-spike intervals (ISI CVs; middle), and the pairwise spike correlation coefficients (right) across neurons for each neuronal population of the microcircuit model, for a simulation time $`T = 900`$s. Solid gray and dashed black curves depict results of individual network realizations and ensemble averages, respectively. Averaged Kolmogorov–Smirnov scores $`D_\text{KS}`$ quantify the variability of the respective distributions across the ensemble of network realizations.
 
 | firing rate | spike irregularity | spike correlation |
 |--|--|--|
@@ -76,6 +76,6 @@ For convenience, we provide sets of simulated and ananlyzed reference data for d
 
 The spike data is stored in text files `data_T<sim_time_in_s>s/seed-<RNGseed>/spike_recorder-<rec-id>-<thread-id>.dat` (1st column: neuron ID, 2nd column: spike time in ms).
 Here, `<sim_time_in_s>` refers to the simulation time in seconds, `<RNGseed>` to the random number generator seed used to generate a specific realization of the model, `<rec-id>` to the population specific spike-recorder ID, and `<thread-id>` to the thread ID.
-Each subfolder in addition contains metadata documenting the node IDs for each neuron population (`nodes.json`), the complete sets of model and simulation parameters (`sim_dict.json`, `net_dict.json`, `stim_dict.json`), as well as the results of the data analysis for each network realization (`rates.json`, `spikes_cvs.json`, `spikes_ccs`.json`).
-The results of the data analysis describing the statistics of the respective ensemble of network realizations (seeds) are stored in `data_T<sim_time_in_s>s` (`rates.json`, `spikes_cvs.json`, `spikes_ccs`.json`, `rate_ks_distances.json`, `spike_cvs_ks_distances.json`, `spike_ccs_ks_distances.json`). 
+Each subfolder in addition contains metadata documenting the node IDs for each neuron population (`nodes.json`), the complete sets of model and simulation parameters (`sim_dict.json`, `net_dict.json`, `stim_dict.json`), as well as the results of the data analysis for each network realization (`rates.json`, `spikes_cvs.json`, `spikes_ccs.json`).
+The results of the data analysis describing the statistics of the respective ensemble of network realizations (seeds) are stored in `data_T<sim_time_in_s>s` (`rates.json`, `spikes_cvs.json`, `spikes_ccs.json`, `rate_ks_distances.json`, `spike_cvs_ks_distances.json`, `spike_ccs_ks_distances.json`). 
 
