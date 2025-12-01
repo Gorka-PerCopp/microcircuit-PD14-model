@@ -12,7 +12,7 @@ python generate_reference_data.py --seed <RNGseed> --path <data_path>
 ```
 
 The script uses the parameters defined in [`params.py`](params.py), which overwrite some of the default parameters in [../src/microcircuit](../src/microcircuit).
-The random number generator seed used to create a realization of the mode and the data path can be set via the (optional) command line arguments `<RNGseed>` and `<data_path>`.
+The random number generator seed used to create a realization of the model and the data path can be set via the (optional) command line arguments `<RNGseed>` and `<data_path>`.
   
 ## Data analysis
 
