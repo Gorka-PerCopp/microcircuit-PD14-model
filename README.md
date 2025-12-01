@@ -45,7 +45,7 @@ Please contact us in case publications are missing from this list.
 | [`PyNEST`](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST) | PyNEST implementation (python package)|
 | &emsp;[`PyNEST/src/microcircuit`](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST/src/microcircuit) | source code |
 | &emsp;[`PyNEST/examples`](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST/examples) | examples illustrating usage of the python package |
-| &emsp;[`PyNEST/reference_data`](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST/reference_data) | reference spike data |
+| &emsp;[`PyNEST/reference_data`](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST/reference_data) | reference spike data (generation and verification) |
 | &emsp;[`PyNEST/tests`](https://github.com/INM-6/microcircuit-PD14-model/blob/main/PyNEST/tests) | unit tests |
 | [`figures`](https://github.com/INM-6/microcircuit-PD14-model/blob/main/figures) | overview figures |
 

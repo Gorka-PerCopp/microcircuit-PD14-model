@@ -22,7 +22,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 '''
-Example illustrating usage of the `microcircuit` python package.
+Generation of reference data.
 '''
 
 #####################
@@ -71,9 +71,6 @@ sim_dict["t_sim"] = ref_dict["t_sim"] # simulate for 10.0s
 ## set number of local number of threads
 sim_dict["local_num_threads"] = ref_dict['local_num_threads']
 
-## set path for storing spike data and figures
-#sim_dict['data_path'] = 'data_scale_%.2f/' % scaling_factor
-    
 def main():
 
     ## start timer 
