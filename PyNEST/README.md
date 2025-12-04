@@ -27,6 +27,11 @@ The `microcircuit` python package can be installed using:
   pip install .
   ```
 
+Alternatively, the `microcircuit` python package can be installed without cloning this repositoy using:
+  ```bash
+  pip install "git+https://github.com/INM-6/microcircuit-PD14-model.git/#egg=microcircuit&subdirectory=PyNEST"
+  ```
+
 ## Testing
 
 Executing
