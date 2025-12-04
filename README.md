@@ -28,12 +28,12 @@ In recent years, the model became an established Computational Neuroscience benc
 
 <!-- https://microcircuit-PD14-model.readthedocs.io/en/latest/model_description.html -->
 
-A detailed mathematical, implementation agnostic description of the model and its parameters.
+A detailed mathematical, implementation-agnostic description of the model and its parameters
 
 ## Model implementations
 [<img src="figures/modelimplementation_icon.png" height="200"/>](https://microcircuit-PD14-model.readthedocs.io/en/latest/pynest_implementation.html)
 
-A PyNEST implementation in the form of a Python package.
+A PyNEST implementation in the form of a Python package
 
 ## Publications
 A list of studies citing and/or using the microcircuit model is provided [here](https://microcircuit-PD14-model.readthedocs.io/en/latest/publications/publications.html).
