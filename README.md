@@ -24,7 +24,9 @@ Specifically, the model demonstrates that the observed cell-type and layer speci
 In recent years, the model became an established Computational Neuroscience benchmark for various soft- and hardware architectures ([van Albada et al., 2018](https://doi.org/10.3389/fnins.2018.00291); [Jordan et al., 2018](https://doi.org/10.3389/fninf.2018.00002); [Rhodes et al., 2020](https://doi.org/10.1098/rsta.2019.0160); [Dasbach et al., 2021](https://doi.org/10.3389/fnins.2021.757790); [Albers et al., 2022](https://doi.org/10.3389/fninf.2022.837549); [Kurth et al., 2022](https://doi.org/10.1088/2634-4386/ac55fc); [Heittmann et al., 2022](https://doi.org/10.3389/fnins.2021.728460); [Pronold et al., 2022](https://doi.org/10.3389/fninf.2021.785068); [Pronold et al., 2022](https://doi.org/10.1016/j.parco.2022.102952); [Golosio et al., 2023](https://doi.org/10.3390/app13179598); [Kauth et al., 2023](https://doi.org/10.3389/fncom.2023.1144143); [Schmidt et al., 2024](https://doi.org/10.48550/arXiv.2412.02619); [Senk et al., 2025](https://doi.org/10.48550/arXiv.2505.21185)).
 
 ## Model description
-[<img src="figures/modeldescription_icon.png" width="200"/>](https://microcircuit-PD14-model.readthedocs.io/en/latest/model_description.html) 
+[<img src="figures/modeldescription_icon_blue.png" height="200"/>](https://microcircuit-pd14-model.readthedocs.io/en/latest/_static/microcircuit-pd14-model.pdf)
+
+<!-- https://microcircuit-PD14-model.readthedocs.io/en/latest/model_description.html -->
 
 A detailed mathematical, implementation agnostic description of the model and its parameters.
 
