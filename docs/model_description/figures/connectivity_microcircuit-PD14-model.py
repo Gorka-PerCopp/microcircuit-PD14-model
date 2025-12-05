@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+## -*- coding: utf-8 -*-
+##
+## This file is part of https://github.com/INM-6/microcircuit-PD14-model
 ##
 ## SPDX-License-Identifier: CC-BY-NC-SA-4.0
 ##

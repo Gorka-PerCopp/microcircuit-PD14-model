@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+# run_job.sh
+#
+# This file is part of https://github.com/INM-6/microcircuit-PD14-model
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 #!/bin/bash -x
 #SBATCH --partition=hamsteinZen3
 #SBATCH --nodes=1

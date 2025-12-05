@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+# submit.sh
+#
+# This file is part of https://github.com/INM-6/microcircuit-PD14-model
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 #!/bin/bash -x
 
 sim_time=$(python3 -c "import sys; sys.path.append('../'); from params import params as ref_dict; print(int(ref_dict['t_sim'] * 1.0e-3))")
