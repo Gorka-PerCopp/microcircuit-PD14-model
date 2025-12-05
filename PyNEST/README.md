@@ -5,10 +5,7 @@
 
 ## Installing the python package `microcircuit`
 
-The PyNEST implementation of the model is provided in the form of a python package `microcircuit` and is contained in `microcircuit-PD14-model/PyNEST`:
-  ```bash
-  cd PyNEST
-  ```
+The PyNEST implementation of the model is provided in the form of a python package `microcircuit`.
 
 We recommend installing the python package inside a python environment:
 - Create a python environment
@@ -19,16 +16,19 @@ We recommend installing the python package inside a python environment:
   ```
   source venv/bin/activate
   ```
-- Note: NEST needs to be installed locally in the virtual envirionment (see software requirements)
+- Note: NEST needs to be installed locally in the virtual environment (see software requirements)
 
-The `microcircuit` python package can be installed using:
+The `microcircuit` python package can be installed by 
   ```bash
+  git clone https://github.com/inm-6/microcircuit-PD14-model
   pip install -U pip
-  pip install .
+  pip install microcircuit-PD14-model/PyNEST
   ```
+  
+or, without cloning the entire repository, by
 
-Alternatively, the `microcircuit` python package can be installed without cloning this repositoy using:
-  ```bash
+  ```
+  pip install -U pip
   pip install "git+https://github.com/INM-6/microcircuit-PD14-model.git/#egg=microcircuit&subdirectory=PyNEST"
   ```
 
