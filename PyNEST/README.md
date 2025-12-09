@@ -16,19 +16,21 @@ We recommend installing the python package inside a python environment:
   ```
   source venv/bin/activate
   ```
+- Update pip: 
+  ```
+  pip install -U pip
+  ```
 - Note: NEST needs to be installed locally in the virtual environment (see software requirements)
 
 The `microcircuit` python package can be installed by 
   ```bash
   git clone https://github.com/inm-6/microcircuit-PD14-model
-  pip install -U pip
   pip install microcircuit-PD14-model/PyNEST
   ```
   
 or, without cloning the entire repository, by
 
   ```
-  pip install -U pip
   pip install "git+https://github.com/INM-6/microcircuit-PD14-model.git/#egg=microcircuit&subdirectory=PyNEST"
   ```
 
