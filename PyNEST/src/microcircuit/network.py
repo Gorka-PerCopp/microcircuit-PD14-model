@@ -160,7 +160,9 @@ Storing simulation metadata to {self.sim_dict['data_path']}
 
             helpers.dict2json(nodes, self.sim_dict['data_path'] + '/' + 'nodes.json')
 
-
+            ### python packages and versions
+            os.system('pip freeze > requirements.txt; mv requirements.txt %s' % self.sim_dict['data_path'])
+            
     def simulate(self, t_sim):
         """Simulates the microcircuit.
 
