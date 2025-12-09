@@ -20,7 +20,7 @@ We recommend installing the python package inside a python environment:
   ```
   pip install -U pip
   ```
-- Note: NEST needs to be installed locally in the virtual environment (see software requirements)
+- Note: NEST needs to be installed locally in the virtual environment (see software requirements); see [NEST install instructions](https://nest-simulator.readthedocs.io/en/stable/installation).
 
 The `microcircuit` python package can be installed by 
   ```bash
