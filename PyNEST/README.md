@@ -16,21 +16,42 @@ We recommend installing the python package inside a python environment:
   ```
   source venv/bin/activate
   ```
-- Note: NEST needs to be installed locally in the virtual environment (see software requirements)
+- Update pip: 
+  ```
+  pip install -U pip
+  ```
 
 The `microcircuit` python package can be installed by 
   ```bash
   git clone https://github.com/inm-6/microcircuit-PD14-model
-  pip install -U pip
   pip install microcircuit-PD14-model/PyNEST
   ```
   
 or, without cloning the entire repository, by
 
   ```
-  pip install -U pip
   pip install "git+https://github.com/INM-6/microcircuit-PD14-model.git/#egg=microcircuit&subdirectory=PyNEST"
   ```
+
+## Software requirements
+
+- NEST (see [NEST installation](https://nest-simulator.readthedocs.io/en/stable/installation))
+
+  We recommend installing NEST locally within the virtual environment:
+  ```bash
+  git clone https://github.com/nest/nest-simulator
+  ## for a specific <VERSION> (e.g. <VERSION>=v3.9), use
+  ## git clone --depth 1 --branch <VERSION> https://github.com/nest/nest-simulator
+  cd nest-simulator
+  mkdir build
+  cd build
+  pip install -r ../requirements_pynest.txt
+  cmake ..
+  make
+  make install
+  ```
+- Python 3.x
+- docopt-ng, matplotlib, numpy, psutil, ruamel.yaml (handled by python package dependencies)
 
 ## Testing
 
@@ -49,14 +70,6 @@ import microcircuit
 ```
 
 See [this example](https://microcircuit-PD14-model.readthedocs.io/en/latest/auto_examples/index.html) for a more detailed illustration of how the package can be used.
-
-
-## Software requirements
-
-- NEST ([NEST installation](https://nest-simulator.readthedocs.io/en/stable/installation))
-- Python 3.x
-
-- docopt-ng, matplotlib, numpy, psutil, ruamel.yaml (handled by python package dependencies)
 
 ## Memory requirements
 
