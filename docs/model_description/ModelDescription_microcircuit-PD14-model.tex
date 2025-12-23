@@ -263,12 +263,12 @@ It does not contain any information on specific numerical implementations.
                              V_{i}\left(t_{i}^{k}\right)\geq\theta  
                            \end{equation}
                            with spike threshold $\theta$
+                         \item spike train $\displaystyle s_i(t)=\sum_k \delta(t-t_i^k)$                           
                          \item reset and refractoriness:
                            \begin{equation}
 				   \forall{}k,\ \forall t \in \left[t_{i}^{k},\,t_{i}^{k}+\tauR\right]:\quad V_{i}(t)=V_\text{reset}  
                            \end{equation}
                             with refractory period $\tauR$ and reset potential $V_\text{reset}$
-                         \item spike train $\displaystyle s_i(t)=\sum_k \delta(t-t_i^k)$
                          \item subthreshold dynamics of membrane potential $V_{i}(t)$:
                            \begin{equation}
 			     \label{eq:membrane_potential}
