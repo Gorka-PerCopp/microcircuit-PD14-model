@@ -51,7 +51,8 @@ dependencies = [
     # "nest-simulator",   ## needs `pip install nest-simulator` to become available    
     "numpy",
     "psutil",
-    "ruamel.yaml"
+    "ruamel.yaml",
+    #"gathermetadata@git+ssh://git@github.com/INM-6/gather-metadata"
 ]
 
 [metadata]

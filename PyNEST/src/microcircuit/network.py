@@ -162,6 +162,9 @@ Storing simulation metadata to {self.sim_dict['data_path']}
 
             ### python packages and versions
             os.system('pip freeze > requirements.txt; mv requirements.txt %s' % self.sim_dict['data_path'])
+
+            ### store system metadata
+            #os.system('cd %s; gathermetadata system_metadata' % self.sim_dict['data_path'])
             
     def simulate(self, t_sim):
         """Simulates the microcircuit.

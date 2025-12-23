@@ -114,6 +114,8 @@ def run_example():
         + "  Time to simulate:    {:.3f} s\n".format(time_simulate - time_presimulate)
         + "  Time to evaluate:    {:.3f} s\n".format(time_evaluate - time_simulate)
     )
+
+    net.store_metadata()
     
 def main():
     'Start main CLI entry point.'
