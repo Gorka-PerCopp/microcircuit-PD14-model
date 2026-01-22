@@ -7,12 +7,22 @@ DATA_PATH = ref_dict["test_data_path"]
 SIM_TIME = str( int( ref_dict["t_sim"] * 1.0e-3 ) )
 
 rule all:
+    """
+    Final rule to run all tests.
+    Requires the completion of data generation, analysis, ensemble statistics, and plotting.
+    """
+
     input:
         f"{DATA_PATH}/data_T{SIM_TIME}s/ensemble_statistics.done",
         f"{DATA_PATH}/data_T{SIM_TIME}s/plots.done"
 
 
 rule test_generate_reference_data:
+    """
+    Generate reference data for each seed.
+    When successfull creates a 'raw.done' file in the respective seed directory.
+    """
+
     output:
         touch(f"{DATA_PATH}/data_T{SIM_TIME}s/seed-{{seed}}/raw.done")
     params:
@@ -28,6 +38,11 @@ rule test_generate_reference_data:
 
 
 rule test_analyze_reference_data:
+    """
+    Analyze the generated reference data for each seed.
+    When successful creates an 'analyzed.done' file in the respective seed directory.
+    """
+
     input:
         f"{DATA_PATH}/data_T{SIM_TIME}s/seed-{{seed}}/raw.done"
     output:
@@ -44,6 +59,11 @@ rule test_analyze_reference_data:
 
 
 rule test_compute_ensemble_statistics:
+    """
+    Compute ensemble statistics across all seeds.
+    When successful creates an 'ensemble_statistics.done' file in the data directory.
+    """
+
     input:
         expand(f"{DATA_PATH}/data_T{SIM_TIME}s/seed-{{seed}}/analyzed.done", seed=SEEDS)
     output:
@@ -56,6 +76,11 @@ rule test_compute_ensemble_statistics:
 
 
 rule test_plot_reference_analysis:
+    """
+    Generate plots from the ensemble statistics.
+    When successful creates a 'plots.done' file in the data directory.
+    """
+    
     input:
         f"{DATA_PATH}/data_T{SIM_TIME}s/ensemble_statistics.done"
     output:
