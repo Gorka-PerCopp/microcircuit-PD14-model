@@ -28,11 +28,10 @@ params = {
     #'t_sim': 1.0e+4,
     #'t_sim': 9.0e+5,
     # local number of threads
-    'local_num_threads': 64,
-    # local test True/False
-    'local_test': True,
-    # data path for local testing
-    'test_data_path': 'test_data',
+    #'local_num_threads': 64,
+    'local_num_threads': 4,
+    # data path
+    'data_path': 'data',
     ##
     #########################
     # analysis parameters

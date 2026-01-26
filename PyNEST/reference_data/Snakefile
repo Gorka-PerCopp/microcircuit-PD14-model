@@ -3,7 +3,7 @@
 from params import params as ref_dict
 
 SEEDS = ref_dict["RNG_seeds"]
-DATA_PATH = ref_dict["test_data_path"]
+DATA_PATH = ref_dict["data_path"]
 SIM_TIME = str( int( ref_dict["t_sim"] * 1.0e-3 ) )
 
 rule all:
