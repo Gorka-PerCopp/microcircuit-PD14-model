@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+#
+# plot_reference_analysis.py
+#
+# This file is part of https://github.com/INM-6/microcircuit-PD14-model
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+#####################
+
 # Snakefile
 
 from params import params as ref_dict
